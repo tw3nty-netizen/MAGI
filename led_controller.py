@@ -14,7 +14,7 @@ from aiohttp import web
 from bleak import BleakClient, BleakScanner
 
 # =========================================================
-# TERMINAL DOGMA — MAGI LIGHT CONTROL SYSTEM v3
+# TERMINAL DOGMA — MAGI LIGHT CONTROL SYSTEM v4
 # EVA-01 Inspired BLE Controller
 # Adds cinematic Evangelion-inspired software patterns,
 # HSV colour engine, runtime speed/brightness/intensity API.
@@ -76,6 +76,7 @@ PARAMS = {
     "speed": 1.0,
     "brightness": 1.0,
     "intensity": 1.0,
+    "transition_ms": 120,
 }
 
 # ── COLOUR / MATH HELPERS ────────────────────────────────
@@ -358,14 +359,20 @@ PATTERNS = {
 PATTERN_MAP = {k: v["fn"] for k, v in PATTERNS.items()}
 
 # ── PATTERN SWITCHING ─────────────────────────────────────
-async def switch_to(fn):
+async def cancel_current_pattern():
     global current_task
     if current_task and not current_task.done():
         current_task.cancel()
         try:
             await current_task
+        except asyncio.CancelledError:
+            pass
         except Exception:
             pass
+
+async def switch_to(fn):
+    global current_task
+    await cancel_current_pattern()
     current_task = asyncio.create_task(fn())
 
 async def _rejoin():
@@ -442,6 +449,50 @@ def cors(r):
     r.headers["Access-Control-Allow-Headers"] = "Content-Type"
     return r
 
+
+# ── CINEMATIC SCENES ─────────────────────────────────────
+async def scene_step(c1, c2=None, duration=0.25):
+    await send_both(c1, c2)
+    await asyncio.sleep(max(0.01, duration))
+
+async def scene_eva_launch():
+    print("EVA LAUNCH SEQUENCE")
+    await cancel_current_pattern()
+    await power_on_all()
+    for _ in range(2):
+        await scene_step(RED, duration=0.18)
+        await scene_step(BLACK, duration=0.12)
+    await scene_step(WHITE, duration=0.08)
+    await scene_step(PURPLE, GREEN, duration=0.8)
+    await scene_step(GREEN, PURPLE, duration=1.2)
+
+async def scene_angel_alert():
+    print("ANGEL ALERT SEQUENCE")
+    await cancel_current_pattern()
+    await power_on_all()
+    for _ in range(3):
+        await scene_step(BLUE, duration=0.25)
+        await scene_step(BLACK, duration=0.12)
+    await scene_step(WHITE, duration=0.08)
+    for _ in range(6):
+        await scene_step(RED, duration=0.16)
+        await scene_step(BLACK, duration=0.10)
+
+async def scene_blackout():
+    print("BLACKOUT SEQUENCE")
+    await cancel_current_pattern()
+    # stepped fade avoids harsh BLE spam while looking intentional
+    for level in range(10, -1, -1):
+        c = tuple(int(x * level / 10) for x in ORANGE)
+        await scene_step(c, duration=0.08)
+    await power_off_all()
+
+SCENES = {
+    "launch": scene_eva_launch,
+    "angel_alert": scene_angel_alert,
+    "blackout": scene_blackout,
+}
+
 # ── HTTP HANDLERS ─────────────────────────────────────────
 async def handle_options(request):
     return cors(web.Response(status=204))
@@ -454,6 +505,35 @@ async def handle_status(request):
         "params":    PARAMS,
         "patterns":  {k: {"label": v["label"], "theme": v["theme"]} for k, v in PATTERNS.items()}
     }))
+
+async def handle_patterns(request):
+    return cors(web.json_response({
+        "patterns": {k: {"label": v["label"], "theme": v["theme"]} for k, v in PATTERNS.items()},
+        "scenes": list(SCENES.keys())
+    }))
+
+async def handle_scene(request):
+    global current_pattern
+    if not any_connected():
+        return cors(web.json_response({"error": "no devices connected"}, status=503))
+    name = request.match_info["scene"]
+    if name not in SCENES:
+        return cors(web.json_response({"error": "unknown scene"}, status=404))
+    current_pattern = "scene:" + name
+    await SCENES[name]()
+    if name == "blackout":
+        current_pattern = "idle"
+    return cors(web.json_response({"status": "ok", "scene": name, "pattern": current_pattern}))
+
+async def handle_power(request):
+    action = request.match_info["action"]
+    if action == "on":
+        await power_on_all()
+        return cors(web.json_response({"status": "ok", "power": "on"}))
+    if action == "off":
+        await power_off_all()
+        return cors(web.json_response({"status": "ok", "power": "off"}))
+    return cors(web.json_response({"error": "unknown power action"}, status=404))
 
 async def handle_pattern(request):
     global current_pattern
@@ -478,10 +558,7 @@ async def handle_color(request):
     except Exception:
         return cors(web.json_response({"error": "bad body"}, status=400))
 
-    if current_task and not current_task.done():
-        current_task.cancel()
-        try: await current_task
-        except Exception: pass
+    await cancel_current_pattern()
     current_pattern = "custom"
     await power_on_all()
     await send_both((r, g, b))
@@ -493,6 +570,8 @@ async def handle_params(request):
         for k in ("speed", "brightness", "intensity"):
             if k in body:
                 PARAMS[k] = max(0.05, min(3.0, float(body[k])))
+        if "transition_ms" in body:
+            PARAMS["transition_ms"] = max(0, min(2000, int(body["transition_ms"])))
         PARAMS["brightness"] = max(0.0, min(1.0, PARAMS["brightness"]))
         return cors(web.json_response({"status": "ok", "params": PARAMS}))
     except Exception as e:
@@ -500,10 +579,7 @@ async def handle_params(request):
 
 async def handle_shutdown(request):
     global current_pattern
-    if current_task and not current_task.done():
-        current_task.cancel()
-        try: await current_task
-        except Exception: pass
+    await cancel_current_pattern()
     current_pattern = "idle"
     await power_off_all()
     print("System Offline.")
@@ -515,6 +591,11 @@ async def main():
     for method in ("OPTIONS", "GET", "POST"):
         app.router.add_route(method, "/status",   handle_options if method=="OPTIONS" else handle_status)
         app.router.add_route(method, "/shutdown", handle_options if method=="OPTIONS" else handle_shutdown)
+    app.router.add_route("GET",     "/patterns",          handle_patterns)
+    app.router.add_route("OPTIONS", "/scene/{scene}",     handle_options)
+    app.router.add_route("POST",    "/scene/{scene}",     handle_scene)
+    app.router.add_route("OPTIONS", "/power/{action}",    handle_options)
+    app.router.add_route("POST",    "/power/{action}",    handle_power)
     app.router.add_route("OPTIONS", "/pattern/{pattern}", handle_options)
     app.router.add_route("POST",    "/pattern/{pattern}", handle_pattern)
     app.router.add_route("OPTIONS", "/color",             handle_options)
@@ -527,7 +608,7 @@ async def main():
     await web.TCPSite(runner, "localhost", 8765).start()
 
     print("\n══════════════════════════════════")
-    print("  TERMINAL DOGMA — MAGI v3 ONLINE")
+    print("  TERMINAL DOGMA — MAGI v4 ONLINE")
     print("  Server: http://localhost:8765")
     print("  Patterns:", ", ".join(PATTERNS.keys()))
     print("══════════════════════════════════\n")
@@ -539,7 +620,7 @@ async def main():
         await asyncio.sleep(1)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="MAGI BLE Light Controller v3")
+    parser = argparse.ArgumentParser(description="MAGI BLE Light Controller v4")
     parser.add_argument("--pattern", choices=list(PATTERNS.keys()), default=None,
                         help="Pattern to activate on boot")
     args = parser.parse_args()
