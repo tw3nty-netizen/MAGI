@@ -4,785 +4,134 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#050505">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>MAGI — NERV Illumination</title>
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;600;700&display=swap" rel="stylesheet">
+<title>MAGI v4 — NERV Illumination</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;500;600;700&display=swap" rel="stylesheet">
 <style>
-/* ── TOKENS ─────────────────────────────────────────── */
-:root {
-  --or: #ff6600; --or-d: #cc4400; --or-g: rgba(255,102,0,0.28);
-  --gr: #39ff14; --gr-g: rgba(57,255,20,0.28);
-  --pu: #8000ff; --pu-g: rgba(128,0,255,0.28);
-  --re: #ff0033; --re-g: rgba(255,0,51,0.38);
-  --cy: #00c8ff; --cy-g: rgba(0,200,255,0.28);
-  --wh: #ffffff; --wh-g: rgba(255,255,255,0.15);
-  --go: #ffd700; --go-g: rgba(255,215,0,0.25);
-  --bg: #050505; --panel: #0b0600; --border: #251200;
-  --text: #e8d5b0; --dim: #574530;
-  --mono: 'Share Tech Mono', monospace;
-  --disp: 'Rajdhani', sans-serif;
-  --safe-t: env(safe-area-inset-top,0px);
-  --safe-b: env(safe-area-inset-bottom,0px);
+:root{
+  --or:#ff6600;--or2:#ff9b22;--gr:#39ff14;--pu:#8000ff;--re:#ff0033;--cy:#00c8ff;--go:#ffd700;--wh:#fff;
+  --bg:#050505;--panel:#0b0600;--panel2:#120900;--line:#321900;--text:#f0d7b0;--dim:#79634a;
+  --mono:'Share Tech Mono',monospace;--disp:'Rajdhani',sans-serif;--safe-t:env(safe-area-inset-top,0px);--safe-b:env(safe-area-inset-bottom,0px)
 }
-
-/* ── RESET ──────────────────────────────────────────── */
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{background:var(--bg);color:var(--text);font-family:var(--disp);min-height:100dvh;overflow-x:hidden}
-
-/* ── BACKGROUND ─────────────────────────────────────── */
-body::before{
-  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
-  background:
-    radial-gradient(ellipse 80% 40% at 50% 0%,rgba(255,102,0,0.06) 0%,transparent 60%),
-    radial-gradient(ellipse 40% 60% at 100% 100%,rgba(128,0,255,0.04) 0%,transparent 50%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V17L28 0l28 17v33L28 66z' fill='none' stroke='%23ff660010' stroke-width='1'/%3E%3C/svg%3E");
-  background-size:auto,auto,56px 100px;
-}
-body::after{
-  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
-  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.06) 3px,rgba(0,0,0,0.06) 4px);
-}
-
-/* ── LAYOUT ─────────────────────────────────────────── */
-.app{
-  position:relative;z-index:1;max-width:500px;margin:0 auto;
-  padding:calc(var(--safe-t) + 14px) 14px calc(var(--safe-b) + 28px);
-  display:flex;flex-direction:column;gap:14px;
-}
-
-/* ── HEADER ─────────────────────────────────────────── */
-.header{text-align:center;padding:6px 0 2px}
-.hlogo{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:4px}
-.nerv-hex{width:42px;height:42px;flex-shrink:0}
-.htitles{text-align:left}
-.title{font-size:2.1rem;font-weight:700;letter-spacing:.22em;color:var(--or);
-  text-shadow:0 0 18px var(--or-g),0 0 40px rgba(255,102,0,0.1);line-height:1}
-.subtitle{font-family:var(--mono);font-size:.52rem;letter-spacing:.22em;color:var(--dim);margin-top:2px}
-.hbar{display:flex;justify-content:space-between;align-items:center;
-  font-family:var(--mono);font-size:.55rem;letter-spacing:.12em;color:var(--dim);
-  padding:8px 2px 0;border-top:1px solid rgba(255,102,0,0.15);margin-top:8px}
-.hbar-dot{width:6px;height:6px;border-radius:50%;background:var(--dim);display:inline-block;margin-right:5px;vertical-align:middle}
-.hbar-dot.live{background:var(--gr);box-shadow:0 0 8px var(--gr);animation:blink 2s ease-in-out infinite}
-.hbar-dot.alert{background:var(--re);box-shadow:0 0 8px var(--re);animation:blink .4s ease-in-out infinite}
-
-/* ── PANEL ──────────────────────────────────────────── */
-.panel{
-  background:linear-gradient(150deg,var(--panel),#060400);
-  border:1px solid var(--border);border-radius:4px;padding:14px;position:relative;overflow:hidden;
-}
-.panel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,var(--or),transparent);opacity:.45}
-.panel-label{font-family:var(--mono);font-size:.52rem;letter-spacing:.2em;color:var(--dim);margin-bottom:12px;text-transform:uppercase}
-
-/* ── DEVICE CARDS ───────────────────────────────────── */
-.dev-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.dev-card{
-  border:1px solid var(--border);border-radius:3px;padding:11px 10px;
-  position:relative;display:flex;flex-direction:column;justify-content:space-between;
-  min-height:108px;transition:border-color .25s,box-shadow .25s;
-}
-.dev-card.conn-gr{border-color:rgba(57,255,20,.4);box-shadow:0 0 12px rgba(57,255,20,.08)}
-.dev-card.conn-pu{border-color:rgba(128,0,255,.4);box-shadow:0 0 12px rgba(128,0,255,.08)}
-.dev-card.conn-or{border-color:rgba(255,102,0,.35);box-shadow:0 0 10px rgba(255,102,0,.07)}
-.dc-dot{width:7px;height:7px;border-radius:50%;background:var(--dim);position:absolute;top:9px;right:9px;transition:all .3s}
-.dc-dot.gr{background:var(--gr);box-shadow:0 0 7px var(--gr);animation:blink 2s ease-in-out infinite}
-.dc-dot.pu{background:#b060ff;box-shadow:0 0 7px #b060ff;animation:blink 2.4s ease-in-out infinite}
-.dc-dot.or{background:var(--or);box-shadow:0 0 7px var(--or);animation:spin-fade .7s linear infinite}
-.dc-slot{font-family:var(--mono);font-size:.5rem;letter-spacing:.15em;color:var(--dim)}
-.dc-name{font-size:.78rem;font-weight:600;letter-spacing:.06em;color:var(--text);margin:3px 0 2px;word-break:break-word;line-height:1.2}
-.dc-type{font-family:var(--mono);font-size:.48rem;color:var(--dim)}
-.dc-rssi{font-family:var(--mono);font-size:.48rem;color:var(--dim);margin-top:1px}
-.dc-btn{
-  background:transparent;border:1px solid var(--border);border-radius:2px;
-  color:var(--or);font-family:var(--mono);font-size:.5rem;letter-spacing:.13em;
-  padding:5px 8px;cursor:pointer;width:100%;margin-top:7px;transition:all .15s;text-transform:uppercase;
-}
-.dc-btn:hover{border-color:var(--or);background:rgba(255,102,0,.05)}
-.dc-btn:active{transform:scale(.97)}
-.dc-btn.disc{color:var(--dim);border-color:#1a1a1a}
-.dc-btn.disc:hover{color:var(--re);border-color:var(--re)}
-.dc-btn:disabled{opacity:.3;pointer-events:none}
-
-/* ── SECTION HEADER ─────────────────────────────────── */
-.sec-head{display:flex;align-items:center;gap:8px;margin-bottom:12px}
-.sec-line{flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
-
-/* ── PATTERN BUTTONS ────────────────────────────────── */
-.patterns{display:flex;flex-direction:column;gap:9px}
-.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.btn{
-  position:relative;padding:14px 12px;background:transparent;border:1px solid;
-  border-radius:3px;cursor:pointer;font-family:var(--disp);text-align:left;
-  transition:all .15s;overflow:hidden;width:100%;-webkit-user-select:none;user-select:none;
-}
-.btn::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .15s}
-.btn:hover::before{opacity:1}
-.btn:active{transform:scale(.985)}
-.btn:disabled{opacity:.2;pointer-events:none}
-.btn-code{font-family:var(--mono);font-size:.48rem;letter-spacing:.18em;opacity:.4;display:block;margin-bottom:3px}
-.btn-name{font-size:.9rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;display:block}
-.btn-desc{font-family:var(--mono);font-size:.5rem;opacity:.42;display:block;margin-top:3px;line-height:1.45}
-.berserk-icon{font-size:1.3rem;opacity:.5;flex-shrink:0}
-
-/* active indicator dot */
-.btn.active::after{
-  content:'';position:absolute;top:8px;right:8px;
-  width:5px;height:5px;border-radius:50%;
-}
-
-/* ── PATTERN THEMES ─────────────────────────────────── */
-.btn-synchro{border-color:#1a3a0a;color:var(--gr)}
-.btn-synchro::before{background:radial-gradient(circle at 30% 50%,rgba(57,255,20,.05),transparent 60%)}
-.btn-synchro:hover,.btn-synchro.active{border-color:var(--gr);box-shadow:0 0 14px var(--gr-g)}
-.btn-synchro.active::after{background:var(--gr);box-shadow:0 0 5px var(--gr)}
-@keyframes sync-pulse{0%,100%{box-shadow:0 0 14px var(--gr-g)}50%{box-shadow:0 0 28px rgba(57,255,20,.5)}}
-.btn-synchro.active{animation:sync-pulse 1s ease-in-out infinite}
-
-.btn-breath{border-color:#1a0840;color:#b060ff}
-.btn-breath::before{background:radial-gradient(circle at 30% 50%,rgba(128,0,255,.07),transparent 60%)}
-.btn-breath:hover,.btn-breath.active{border-color:var(--pu);box-shadow:0 0 14px var(--pu-g)}
-.btn-breath.active::after{background:#b060ff;box-shadow:0 0 5px #b060ff}
-@keyframes breath-pulse{0%,100%{box-shadow:0 0 14px var(--pu-g)}50%{box-shadow:0 0 30px rgba(128,0,255,.55)}}
-.btn-breath.active{animation:breath-pulse 3.6s ease-in-out infinite}
-
-.btn-berserk{border-color:#2a0010;color:var(--re);display:flex;align-items:center;justify-content:space-between}
-.btn-berserk::before{background:radial-gradient(circle at 50% 50%,rgba(255,0,51,.06),transparent 60%)}
-.btn-berserk:hover,.btn-berserk.active{border-color:var(--re);box-shadow:0 0 18px var(--re-g)}
-.btn-berserk.active::after{background:var(--re);box-shadow:0 0 5px var(--re);animation:blink .5s ease-in-out infinite}
-@keyframes berserk-glow{0%,100%{box-shadow:0 0 18px var(--re-g)}50%{box-shadow:0 0 40px rgba(255,0,51,.65)}}
-.btn-berserk.active{animation:berserk-glow .8s ease-in-out infinite}
-
-.btn-static{border-color:#2a1400;color:var(--or)}
-.btn-static::before{background:radial-gradient(circle at 30% 50%,rgba(255,102,0,.05),transparent 60%)}
-.btn-static:hover,.btn-static.active{border-color:var(--or);box-shadow:0 0 14px var(--or-g)}
-.btn-static.active::after{background:var(--or);box-shadow:0 0 5px var(--or)}
-
-.btn-tidal{border-color:#001830;color:var(--cy)}
-.btn-tidal::before{background:radial-gradient(circle at 30% 50%,rgba(0,200,255,.06),transparent 60%)}
-.btn-tidal:hover,.btn-tidal.active{border-color:var(--cy);box-shadow:0 0 14px var(--cy-g)}
-.btn-tidal.active::after{background:var(--cy);box-shadow:0 0 5px var(--cy)}
-@keyframes tidal-flow{0%{box-shadow:0 0 14px var(--cy-g)}50%{box-shadow:0 0 28px rgba(0,200,255,.5),0 0 50px rgba(128,0,255,.15)}100%{box-shadow:0 0 14px var(--cy-g)}}
-.btn-tidal.active{animation:tidal-flow 3s ease-in-out infinite}
-
-.btn-eva{border-color:#1a1040;color:var(--wh)}
-.btn-eva::before{background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.04),transparent 60%)}
-.btn-eva:hover,.btn-eva.active{border-color:rgba(255,255,255,.4);box-shadow:0 0 14px var(--wh-g)}
-.btn-eva.active::after{background:var(--wh);box-shadow:0 0 5px var(--wh)}
-@keyframes eva-awaken{0%,100%{box-shadow:0 0 14px var(--wh-g)}50%{box-shadow:0 0 35px rgba(255,255,255,.35),0 0 60px rgba(57,255,20,.15)}}
-.btn-eva.active{animation:eva-awaken 1.3s ease-in-out infinite}
-
-.btn-rainbow{border-color:#181800;color:var(--go)}
-.btn-rainbow::before{background:radial-gradient(circle at 30% 50%,rgba(255,215,0,.05),transparent 60%)}
-.btn-rainbow:hover,.btn-rainbow.active{border-color:var(--go);box-shadow:0 0 14px var(--go-g)}
-.btn-rainbow.active::after{background:var(--go);box-shadow:0 0 5px var(--go)}
-@keyframes rainbow-spin{0%,100%{box-shadow:0 0 14px var(--go-g)}33%{box-shadow:0 0 20px rgba(57,255,20,.4)}66%{box-shadow:0 0 20px rgba(128,0,255,.4)}}
-.btn-rainbow.active{animation:rainbow-spin 2s ease-in-out infinite}
-
-.btn-strobe{border-color:#200020;color:#ff44ff}
-.btn-strobe::before{background:radial-gradient(circle at 50% 50%,rgba(255,68,255,.05),transparent 60%)}
-.btn-strobe:hover,.btn-strobe.active{border-color:#ff44ff;box-shadow:0 0 14px rgba(255,68,255,.3)}
-.btn-strobe.active::after{background:#ff44ff;box-shadow:0 0 5px #ff44ff;animation:blink .25s linear infinite}
-@keyframes strobe-flash{0%,49%{box-shadow:0 0 14px rgba(255,68,255,.3)}50%,100%{box-shadow:0 0 30px rgba(255,68,255,.7)}}
-.btn-strobe.active{animation:strobe-flash .5s linear infinite}
-
-.btn-off{border-color:#181818;color:var(--dim);display:flex;align-items:center;justify-content:center;gap:8px;font-family:var(--mono);font-size:.6rem;letter-spacing:.18em}
-.btn-off:hover{border-color:#444;color:var(--text)}
-.btn-off::before{background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.02),transparent 60%)}
-
-/* ── CUSTOM COLOUR ──────────────────────────────────── */
-.colour-panel{display:flex;flex-direction:column;gap:10px}
-.colour-preview{
-  height:48px;border-radius:3px;border:1px solid var(--border);
-  transition:background .1s;display:flex;align-items:center;justify-content:center;
-  font-family:var(--mono);font-size:.55rem;letter-spacing:.15em;color:rgba(0,0,0,.5);
-  font-weight:bold;
-}
-.colour-sliders{display:grid;grid-template-columns:auto 1fr auto;gap:6px 10px;align-items:center}
-.slider-label{font-family:var(--mono);font-size:.55rem;letter-spacing:.1em}
-.slider-label.r{color:#ff6060}
-.slider-label.g{color:#60ff60}
-.slider-label.b{color:#6080ff}
-.slider-val{font-family:var(--mono);font-size:.55rem;text-align:right;width:28px}
-input[type=range]{
-  -webkit-appearance:none;appearance:none;width:100%;height:3px;border-radius:2px;
-  background:#2a1400;outline:none;cursor:pointer;
-}
-input[type=range].r::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#ff6060;cursor:pointer;box-shadow:0 0 6px rgba(255,96,96,.5)}
-input[type=range].g::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#60ff60;cursor:pointer;box-shadow:0 0 6px rgba(96,255,96,.5)}
-input[type=range].b::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#6080ff;cursor:pointer;box-shadow:0 0 6px rgba(96,128,255,.5)}
-.btn-send-colour{
-  background:transparent;border:1px solid var(--or);border-radius:3px;
-  color:var(--or);font-family:var(--mono);font-size:.6rem;letter-spacing:.18em;
-  padding:9px;cursor:pointer;width:100%;transition:all .15s;text-transform:uppercase;
-}
-.btn-send-colour:hover{background:rgba(255,102,0,.08);box-shadow:0 0 12px var(--or-g)}
-.btn-send-colour:active{transform:scale(.98)}
-.btn-send-colour:disabled{opacity:.25;pointer-events:none}
-
-/* ── QUICK COLOURS ──────────────────────────────────── */
-.quick-colours{display:flex;gap:8px;flex-wrap:wrap}
-.qc-swatch{
-  width:32px;height:32px;border-radius:3px;border:1px solid rgba(255,255,255,.1);
-  cursor:pointer;transition:transform .15s,box-shadow .15s;flex-shrink:0;
-}
-.qc-swatch:hover{transform:scale(1.15)}
-.qc-swatch:active{transform:scale(.95)}
-
-/* ── READOUT ────────────────────────────────────────── */
-.readout{
-  border:1px solid var(--border);border-radius:3px;padding:9px 14px;
-  display:flex;justify-content:space-between;align-items:center;
-}
-.readout-label{font-family:var(--mono);font-size:.5rem;letter-spacing:.18em;color:var(--dim)}
-.readout-value{font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;color:var(--or);text-shadow:0 0 8px var(--or-g)}
-
-/* ── NO BT WARNING ──────────────────────────────────── */
-.no-bt{text-align:center;padding:40px 20px;border:1px solid var(--border);border-radius:4px}
-.no-bt-icon{font-size:2.5rem;margin-bottom:12px;opacity:.5}
-.no-bt-title{font-size:1.1rem;font-weight:700;letter-spacing:.1em;color:var(--or);margin-bottom:8px}
-.no-bt-msg{font-family:var(--mono);font-size:.56rem;color:var(--dim);line-height:1.9;letter-spacing:.04em}
-
-/* ── TOAST ──────────────────────────────────────────── */
-.toast{
-  position:fixed;bottom:calc(var(--safe-b) + 18px);left:50%;
-  transform:translateX(-50%) translateY(80px);
-  background:#120800;border:1px solid var(--or);border-radius:3px;
-  padding:8px 18px;font-family:var(--mono);font-size:.58rem;
-  letter-spacing:.13em;color:var(--or);box-shadow:0 0 20px var(--or-g);
-  transition:transform .3s cubic-bezier(.34,1.56,.64,1);z-index:100;white-space:nowrap;
-}
-.toast.show{transform:translateX(-50%) translateY(0)}
-.toast.err{border-color:var(--re);color:var(--re);box-shadow:0 0 20px var(--re-g);background:#120008}
-.toast.ok{border-color:var(--gr);color:var(--gr);box-shadow:0 0 20px var(--gr-g);background:#021200}
-
-/* ── ANIMATIONS ─────────────────────────────────────── */
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
-@keyframes spin-fade{0%,100%{opacity:1}50%{opacity:.2}}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{min-height:100dvh;background:var(--bg);color:var(--text);font-family:var(--disp);overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 70% 35% at 50% 0%,rgba(255,102,0,.12),transparent 60%),radial-gradient(ellipse 40% 60% at 100% 100%,rgba(128,0,255,.08),transparent 55%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V17L28 0l28 17v33L28 66z' fill='none' stroke='%23ff660012' stroke-width='1'/%3E%3C/svg%3E")}
+body:after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.09) 3px,rgba(0,0,0,.09) 4px)}
+.app{position:relative;z-index:1;max-width:1120px;margin:0 auto;padding:calc(var(--safe-t) + 18px) 16px calc(var(--safe-b) + 28px);display:grid;gap:14px}
+.header{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;border:1px solid var(--line);background:linear-gradient(140deg,rgba(18,9,0,.9),rgba(3,3,3,.85));padding:16px;box-shadow:0 0 40px rgba(255,102,0,.08)}
+.brand{display:flex;gap:14px;align-items:center}.sigil{width:48px;height:48px;filter:drop-shadow(0 0 12px rgba(255,102,0,.35))}.title{font-size:2.4rem;letter-spacing:.22em;line-height:.85;color:var(--or);font-weight:700;text-shadow:0 0 22px rgba(255,102,0,.38)}.sub{font-family:var(--mono);font-size:.58rem;color:var(--dim);letter-spacing:.18em;margin-top:5px}.statusbar{text-align:right;font-family:var(--mono);font-size:.62rem;color:var(--dim);line-height:1.8}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#333;margin-right:6px}.dot.live{background:var(--gr);box-shadow:0 0 9px var(--gr);animation:blink 1.8s ease-in-out infinite}.dot.warn{background:var(--re);box-shadow:0 0 9px var(--re);animation:blink .45s linear infinite}
+.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:14px}.panel{border:1px solid var(--line);background:linear-gradient(150deg,rgba(12,6,0,.96),rgba(4,4,4,.92));padding:14px;position:relative;overflow:hidden}.panel:before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--or),transparent);opacity:.55}.label{font-family:var(--mono);font-size:.58rem;color:var(--dim);letter-spacing:.18em;text-transform:uppercase;margin-bottom:12px;display:flex;justify-content:space-between;gap:10px}.small{font-family:var(--mono);font-size:.58rem;color:var(--dim)}
+.device-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.dev{border:1px solid #241200;padding:12px;min-height:96px;background:rgba(0,0,0,.18)}.dev.on{border-color:rgba(57,255,20,.45);box-shadow:0 0 15px rgba(57,255,20,.08)}.dev-name{font-size:1rem;font-weight:700;letter-spacing:.08em}.dev-type{font-family:var(--mono);font-size:.58rem;color:var(--dim);margin-top:7px}.readout{border:1px solid #241200;background:rgba(0,0,0,.2);padding:12px;display:grid;gap:8px}.readout strong{color:var(--or);font-family:var(--mono);font-size:.8rem;letter-spacing:.12em}.api-row{display:grid;grid-template-columns:1fr auto;gap:8px}input[type=text]{background:#050505;border:1px solid #2d1700;color:var(--text);font-family:var(--mono);padding:10px;outline:none}input[type=text]:focus{border-color:var(--or);box-shadow:0 0 12px rgba(255,102,0,.18)}
+.patterns{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.btn{background:transparent;border:1px solid #2a1600;color:var(--text);padding:12px;min-height:74px;text-align:left;cursor:pointer;font-family:var(--disp);transition:.13s;position:relative;overflow:hidden}.btn:before{content:"";position:absolute;inset:0;opacity:0;transition:.13s;background:radial-gradient(circle at 30% 40%,rgba(255,102,0,.08),transparent 65%)}.btn:hover:before,.btn.active:before{opacity:1}.btn:hover,.btn.active{border-color:var(--or);box-shadow:0 0 18px rgba(255,102,0,.16)}.btn:active{transform:scale(.985)}.btn:disabled{opacity:.25;pointer-events:none}.code{display:block;font-family:var(--mono);font-size:.49rem;letter-spacing:.16em;color:var(--dim);margin-bottom:4px}.name{display:block;font-size:.9rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase}.desc{display:block;font-family:var(--mono);font-size:.5rem;color:var(--dim);margin-top:5px;line-height:1.35}.theme-green{color:var(--gr);border-color:#16350d}.theme-purple{color:#b060ff;border-color:#201044}.theme-red{color:var(--re);border-color:#2e0010}.theme-cyan,.theme-blue{color:var(--cy);border-color:#001f36}.theme-gold{color:var(--go);border-color:#302900}.theme-orange{color:var(--or);border-color:#301600}.theme-white{color:var(--wh);border-color:#333}.theme-pink{color:#ff44ff;border-color:#301030}
+.controls{display:grid;gap:12px}.control{display:grid;grid-template-columns:90px 1fr 46px;gap:10px;align-items:center}.control label,.control output{font-family:var(--mono);font-size:.58rem;color:var(--dim);letter-spacing:.08em}.control output{text-align:right;color:var(--or)}input[type=range]{appearance:none;width:100%;height:3px;background:#301600;outline:none}input[type=range]::-webkit-slider-thumb{appearance:none;width:15px;height:15px;border-radius:50%;background:var(--or);box-shadow:0 0 8px rgba(255,102,0,.55);cursor:pointer}.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.action{min-height:42px;text-align:center;font-family:var(--mono);font-size:.58rem;letter-spacing:.11em;text-transform:uppercase}.danger{border-color:var(--re);color:var(--re)}.danger:hover{box-shadow:0 0 18px rgba(255,0,51,.28);border-color:var(--re)}.ok{border-color:var(--gr);color:var(--gr)}.ok:hover{box-shadow:0 0 18px rgba(57,255,20,.2);border-color:var(--gr)}
+.colour-grid{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end}.preview{height:82px;border:1px solid #2d1700;background:#39ff14;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:700;color:rgba(0,0,0,.55)}.swatches{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.swatch{width:30px;height:30px;border:1px solid rgba(255,255,255,.15);cursor:pointer}.swatch:hover{transform:scale(1.12)}.toast{position:fixed;left:50%;bottom:calc(var(--safe-b) + 18px);transform:translateX(-50%) translateY(80px);background:#120800;border:1px solid var(--or);color:var(--or);padding:9px 18px;font-family:var(--mono);font-size:.6rem;letter-spacing:.12em;z-index:20;transition:.25s;box-shadow:0 0 24px rgba(255,102,0,.25)}.toast.show{transform:translateX(-50%) translateY(0)}.toast.err{border-color:var(--re);color:var(--re);background:#140006}.toast.ok{border-color:var(--gr);color:var(--gr);background:#021200}.footer{font-family:var(--mono);font-size:.58rem;color:var(--dim);line-height:1.8;text-align:center}.hidden{display:none!important}@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+@media(max-width:850px){.grid{grid-template-columns:1fr}.patterns{grid-template-columns:repeat(2,1fr)}.header{grid-template-columns:1fr}.statusbar{text-align:left}.title{font-size:2rem}}
+@media(max-width:520px){.patterns,.actions,.device-grid,.colour-grid{grid-template-columns:1fr}.control{grid-template-columns:74px 1fr 40px}.btn{min-height:68px}}
 </style>
 </head>
 <body>
 <div class="app">
-
-  <!-- HEADER -->
-  <div class="header">
-    <div class="hlogo">
-      <svg class="nerv-hex" viewBox="0 0 100 100" fill="none">
-        <polygon points="50,4 95,28 95,72 50,96 5,72 5,28" stroke="#ff6600" stroke-width="1.5" fill="none" opacity=".7"/>
-        <polygon points="50,18 82,36 82,64 50,82 18,64 18,36" stroke="#ff6600" stroke-width=".8" fill="none" opacity=".3"/>
-        <line x1="50" y1="4"  x2="50" y2="96" stroke="#ff6600" stroke-width=".5" opacity=".2"/>
-        <line x1="5"  y1="28" x2="95" y2="72" stroke="#ff6600" stroke-width=".5" opacity=".2"/>
-        <line x1="95" y1="28" x2="5"  y2="72" stroke="#ff6600" stroke-width=".5" opacity=".2"/>
-        <circle cx="50" cy="50" r="7" fill="#ff6600" opacity=".9"/>
-        <circle cx="50" cy="50" r="13" stroke="#ff6600" stroke-width=".7" fill="none" opacity=".35"/>
-      </svg>
-      <div class="htitles">
-        <div class="title">MAGI</div>
-        <div class="subtitle">NERV / SPECIAL AGENCY — ILLUMINATION</div>
-      </div>
+  <header class="header">
+    <div class="brand">
+      <svg class="sigil" viewBox="0 0 100 100" fill="none"><polygon points="50,4 95,28 95,72 50,96 5,72 5,28" stroke="#ff6600" stroke-width="1.8"/><polygon points="50,18 82,36 82,64 50,82 18,64 18,36" stroke="#ff6600" stroke-width=".8" opacity=".4"/><line x1="50" y1="4" x2="50" y2="96" stroke="#ff6600" opacity=".2"/><line x1="5" y1="28" x2="95" y2="72" stroke="#ff6600" opacity=".2"/><line x1="95" y1="28" x2="5" y2="72" stroke="#ff6600" opacity=".2"/><circle cx="50" cy="50" r="8" fill="#ff6600"/><circle cx="50" cy="50" r="15" stroke="#ff6600" opacity=".35"/></svg>
+      <div><div class="title">MAGI v4</div><div class="sub">NERV / TERMINAL DOGMA — ILLUMINATION CONTROL</div></div>
     </div>
-    <div class="hbar">
-      <div><span class="hbar-dot" id="hbar-dot"></span><span id="hbar-text">STANDBY</span></div>
-      <span id="hbar-clock">--:--:--</span>
+    <div class="statusbar">
+      <div><span id="netDot" class="dot"></span><span id="netText">BRIDGE OFFLINE</span></div>
+      <div id="clock">--:--:--</div>
+      <div id="activeMini">ACTIVE: —</div>
     </div>
-  </div>
+  </header>
 
-  <!-- NO BLUETOOTH -->
-  <div class="no-bt" id="noBt" style="display:none">
-    <div class="no-bt-icon">📡</div>
-    <div class="no-bt-title">BLUETOOTH UNAVAILABLE</div>
-    <div class="no-bt-msg">
-      Web Bluetooth requires Chrome on Android.<br>
-      Firefox and Safari are not supported.<br><br>
-      Ensure the page is served over HTTPS<br>
-      (GitHub Pages works perfectly).
-    </div>
-  </div>
-
-  <!-- MAIN UI -->
-  <div id="mainUi">
-
-    <!-- DEVICE CONNECTIONS -->
+  <section class="grid">
     <div class="panel">
-      <div class="panel-label">// EVA UNIT CONNECTIONS</div>
-      <div class="dev-grid">
-        <div class="dev-card" id="card-0">
-          <div class="dc-dot" id="dot-0"></div>
-          <div>
-            <div class="dc-slot">UNIT-01</div>
-            <div class="dc-name" id="name-0">NOT PAIRED</div>
-            <div class="dc-type" id="type-0">—</div>
-            <div class="dc-rssi" id="rssi-0"></div>
-          </div>
-          <button class="dc-btn" id="scan-0" onclick="scanDevice(0)">⌖ SCAN</button>
-        </div>
-        <div class="dev-card" id="card-1">
-          <div class="dc-dot" id="dot-1"></div>
-          <div>
-            <div class="dc-slot">UNIT-02</div>
-            <div class="dc-name" id="name-1">NOT PAIRED</div>
-            <div class="dc-type" id="type-1">—</div>
-            <div class="dc-rssi" id="rssi-1"></div>
-          </div>
-          <button class="dc-btn" id="scan-1" onclick="scanDevice(1)">⌖ SCAN</button>
+      <div class="label"><span>// PROTOCOL SELECT</span><span id="patternCount">0 LOADED</span></div>
+      <div id="patterns" class="patterns"></div>
+    </div>
+
+    <aside class="controls">
+      <div class="panel">
+        <div class="label"><span>// PYTHON BRIDGE</span><span id="pollState">NO SIGNAL</span></div>
+        <div class="api-row"><input id="apiBase" type="text" value="http://localhost:8765"><button class="btn action" onclick="saveApiBase()">LINK</button></div>
+        <div class="readout" style="margin-top:10px"><strong id="readout">— IDLE —</strong><span class="small" id="paramsText">speed 1.00 / brightness 1.00 / intensity 1.00</span></div>
+      </div>
+
+      <div class="panel">
+        <div class="label">// EVA UNIT CONNECTIONS</div>
+        <div class="device-grid">
+          <div id="dev1" class="dev"><div class="dev-name">UNIT-01</div><div class="dev-type">NO TELEMETRY</div></div>
+          <div id="dev2" class="dev"><div class="dev-name">UNIT-02</div><div class="dev-type">NO TELEMETRY</div></div>
         </div>
       </div>
-    </div>
 
-    <!-- PATTERN SELECT -->
-    <div class="panel">
-      <div class="panel-label">// PROTOCOL SELECT — CHOOSE PATTERN</div>
-      <div class="patterns">
-
-        <div class="btn-row">
-          <button class="btn btn-synchro" id="pat-synchro" onclick="activate('synchro')" disabled>
-            <span class="btn-code">PATTERN-01</span>
-            <span class="btn-name">SYNCHRO</span>
-            <span class="btn-desc">swap flash<br>accelerating</span>
-          </button>
-          <button class="btn btn-breath" id="pat-breath" onclick="activate('breath')" disabled>
-            <span class="btn-code">PATTERN-02</span>
-            <span class="btn-name">BREATH</span>
-            <span class="btn-desc">counter-fade<br>lilin pulse</span>
-          </button>
+      <div class="panel">
+        <div class="label">// LIVE PARAMETERS</div>
+        <div class="controls">
+          <div class="control"><label>SPEED</label><input id="speed" type="range" min="0.1" max="3" step="0.05" value="1" oninput="paramChanged()"><output id="speedOut">1.00</output></div>
+          <div class="control"><label>BRIGHT</label><input id="brightness" type="range" min="0" max="1" step="0.01" value="1" oninput="paramChanged()"><output id="brightnessOut">1.00</output></div>
+          <div class="control"><label>POWER</label><input id="intensity" type="range" min="0.1" max="3" step="0.05" value="1" oninput="paramChanged()"><output id="intensityOut">1.00</output></div>
         </div>
+      </div>
 
-        <div class="btn-row">
-          <button class="btn btn-tidal" id="pat-tidal" onclick="activate('tidal')" disabled>
-            <span class="btn-code">PATTERN-05</span>
-            <span class="btn-name">TIDAL</span>
-            <span class="btn-desc">green→ocean<br>→purple flow</span>
-          </button>
-          <button class="btn btn-eva" id="pat-evangelion" onclick="activate('evangelion')" disabled>
-            <span class="btn-code">PATTERN-06</span>
-            <span class="btn-name">AWAKENING</span>
-            <span class="btn-desc">EVA-01 surge<br>white flash</span>
-          </button>
+      <div class="panel">
+        <div class="label">// CINEMATIC SCENES</div>
+        <div class="actions">
+          <button class="btn action ok" onclick="scene('launch')">EVA LAUNCH</button>
+          <button class="btn action" onclick="scene('angel_alert')">ANGEL ALERT</button>
+          <button class="btn action danger" onclick="scene('blackout')">BLACKOUT</button>
+          <button class="btn action" onclick="randomPattern()">RANDOM</button>
+          <button class="btn action" onclick="power('on')">POWER ON</button>
+          <button class="btn action danger" onclick="shutdown()">OFFLINE</button>
         </div>
+      </div>
 
-        <div class="btn-row">
-          <button class="btn btn-rainbow" id="pat-rainbow" onclick="activate('rainbow')" disabled>
-            <span class="btn-code">PATTERN-07</span>
-            <span class="btn-name">RAINBOW</span>
-            <span class="btn-desc">hardware mode<br>smooth cycle</span>
-          </button>
-          <button class="btn btn-strobe" id="pat-strobe" onclick="activate('strobe')" disabled>
-            <span class="btn-code">PATTERN-08</span>
-            <span class="btn-name">SEELE STROBE</span>
-            <span class="btn-desc">hardware RGB<br>rapid flash</span>
-          </button>
-        </div>
-
-        <button class="btn btn-static" id="pat-static" onclick="activate('static')" disabled>
-          <span class="btn-code">PATTERN-04 / UNIT-01 STANDARD</span>
-          <span class="btn-name">STATIC — GREEN / PURPLE</span>
-          <span class="btn-desc">hold Unit-01 configuration</span>
-        </button>
-
-        <button class="btn btn-berserk" id="pat-berserk" onclick="activate('berserk')" disabled>
+      <div class="panel">
+        <div class="label">// MANUAL COLOUR</div>
+        <div class="colour-grid">
           <div>
-            <span class="btn-code">PATTERN-03 / CRITICAL OVERRIDE</span>
-            <span class="btn-name">BERSERK MODE</span>
-            <span class="btn-desc">red strobe — all units — max power</span>
+            <div id="preview" class="preview">#39FF14</div>
+            <div class="swatches" id="swatches"></div>
           </div>
-          <span class="berserk-icon">⚠</span>
-        </button>
-
-        <button class="btn btn-off" id="btn-off" onclick="shutdown()" disabled>
-          ⏻ &nbsp; SYSTEM OFFLINE
-        </button>
-
+          <button class="btn action ok" onclick="sendColour()">TRANSMIT</button>
+        </div>
+        <div class="controls" style="margin-top:12px">
+          <div class="control"><label>R</label><input id="r" type="range" min="0" max="255" value="57" oninput="colourChanged()"><output id="rOut">57</output></div>
+          <div class="control"><label>G</label><input id="g" type="range" min="0" max="255" value="255" oninput="colourChanged()"><output id="gOut">255</output></div>
+          <div class="control"><label>B</label><input id="b" type="range" min="0" max="255" value="20" oninput="colourChanged()"><output id="bOut">20</output></div>
+        </div>
       </div>
-    </div>
+    </aside>
+  </section>
 
-    <!-- CUSTOM COLOUR -->
-    <div class="panel">
-      <div class="panel-label">// MANUAL COLOUR CONTROL</div>
-      <div class="colour-panel">
-
-        <div class="quick-colours">
-          <div class="qc-swatch" style="background:#ff0000" onclick="setQuick(255,0,0)" title="Red"></div>
-          <div class="qc-swatch" style="background:#ff6600" onclick="setQuick(255,102,0)" title="Orange"></div>
-          <div class="qc-swatch" style="background:#ffd700" onclick="setQuick(255,215,0)" title="Gold"></div>
-          <div class="qc-swatch" style="background:#39ff14" onclick="setQuick(57,255,20)" title="EVA Green"></div>
-          <div class="qc-swatch" style="background:#00c8ff" onclick="setQuick(0,200,255)" title="Ocean"></div>
-          <div class="qc-swatch" style="background:#8000ff" onclick="setQuick(128,0,255)" title="EVA Purple"></div>
-          <div class="qc-swatch" style="background:#ff00ff" onclick="setQuick(255,0,255)" title="Magenta"></div>
-          <div class="qc-swatch" style="background:#ffffff" onclick="setQuick(255,255,255)" title="White"></div>
-        </div>
-
-        <div class="colour-preview" id="colPreview" style="background:rgb(57,255,20)">
-          #39FF14
-        </div>
-
-        <div class="colour-sliders">
-          <span class="slider-label r">R</span>
-          <input type="range" class="r" id="sR" min="0" max="255" value="57" oninput="updatePreview()">
-          <span class="slider-val" id="vR">57</span>
-
-          <span class="slider-label g">G</span>
-          <input type="range" class="g" id="sG" min="0" max="255" value="255" oninput="updatePreview()">
-          <span class="slider-val" id="vG">255</span>
-
-          <span class="slider-label b">B</span>
-          <input type="range" class="b" id="sB" min="0" max="255" value="20" oninput="updatePreview()">
-          <span class="slider-val" id="vB">20</span>
-        </div>
-
-        <button class="btn-send-colour" id="btn-colour" onclick="sendCustomColour()" disabled>
-          ▶ TRANSMIT COLOUR TO ALL UNITS
-        </button>
-      </div>
-    </div>
-
-    <!-- READOUT -->
-    <div class="readout">
-      <span class="readout-label">ACTIVE PROTOCOL</span>
-      <span class="readout-value" id="readout">— IDLE —</span>
-    </div>
-
-  </div><!-- /mainUi -->
-</div><!-- /app -->
-
-<div class="toast" id="toast"></div>
-
+  <div class="footer">Run <b>python led_controller_magi_v4.py</b>, then open this file. This v4 app controls the local Python bridge at <b>localhost:8765</b>.</div>
+</div>
+<div id="toast" class="toast"></div>
 <script>
-// ── COLOURS ─────────────────────────────────────────────
-const GREEN  = [57,255,20], PURPLE=[128,0,255], RED=[255,0,0];
-const BLACK  = [0,0,0],     OCEAN=[0,180,255],  WHITE=[255,255,255];
-
-// ── BLE PROTOCOL ────────────────────────────────────────
-const SVC_TRIONES = '0000ffd5-0000-1000-8000-00805f9b34fb';
-const CHR_TRIONES = '0000ffd9-0000-1000-8000-00805f9b34fb';
-const SVC_FFF0    = '0000fff0-0000-1000-8000-00805f9b34fb';
-const CHR_FFF0    = '0000fff3-0000-1000-8000-00805f9b34fb';
-
-function clamp(v){return Math.max(0,Math.min(255,Math.round(v)))}
-
-function colorCmd(type,r,g,b){
-  r=clamp(r);g=clamp(g);b=clamp(b);
-  if(type==='triones') return new Uint8Array([0x56,r,g,b,0x00,0xF0,0xAA]);
-  return new Uint8Array([0x7E,0x00,0x05,0x03,r,g,b,0x00,0xEF]);
-}
-function onCmd(type){
-  if(type==='triones') return new Uint8Array([0xCC,0x23,0x33]);
-  return new Uint8Array([0x7E,0x00,0x04,0x01,0x00,0x00,0x00,0x00,0xEF]);
-}
-function offCmd(type){
-  if(type==='triones') return new Uint8Array([0xCC,0x24,0x33]);
-  return new Uint8Array([0x7E,0x00,0x04,0x00,0x00,0x00,0x00,0x00,0xEF]);
-}
-// Hardware mode command (Triones only) — BB mode speed 44
-// From BLELight.h: SMOOTH_RAINBOW=37, RGB_STROBE=98, RED_STROBE=49
-function modeCmd(mode,speed=0x30){return new Uint8Array([0xBB,mode&0xFF,speed&0xFF,0x44])}
-
-// ── DEVICE STATE ────────────────────────────────────────
-const slots=[null,null]; // {device,char,type,name}
-
-// ── PATTERN STATE ───────────────────────────────────────
-let ctrl=null, activePattern='idle';
-
-function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
-
-async function writeSlot(i,data){
-  const s=slots[i]; if(!s) return;
-  try{await s.char.writeValue(data)}catch(e){}
-}
-async function writeAll(d0,d1){
-  await Promise.all([slots[0]?writeSlot(0,d0):null,slots[1]?writeSlot(1,d1??d0):null].filter(Boolean));
-}
-async function sendColor(i,r,g,b){
-  const s=slots[i]; if(!s) return;
-  await writeSlot(i,colorCmd(s.type,r,g,b));
-}
-async function sendAll(r,g,b){
-  await Promise.all([0,1].filter(i=>slots[i]).map(i=>sendColor(i,r,g,b)));
-}
-async function powerOnAll(){
-  for(let i=0;i<2;i++) if(slots[i]) await writeSlot(i,onCmd(slots[i].type));
-  await sleep(350);
-}
-async function powerOffAll(){
-  for(let i=0;i<2;i++) if(slots[i]) await writeSlot(i,offCmd(slots[i].type));
-}
-async function sendMode(i,mode,speed=0x30){
-  const s=slots[i]; if(!s||s.type!=='triones') return;
-  await writeSlot(i,modeCmd(mode,speed));
-}
-function anyConnected(){return slots[0]||slots[1]}
-
-// ── PATTERNS ────────────────────────────────────────────
-async function patSynchro(c){
-  let d=500;
-  while(d>80&&!c.stop){
-    await sendColor(0,...GREEN);await sendColor(1,...PURPLE);await sleep(d);if(c.stop)break;
-    await sendColor(0,...PURPLE);await sendColor(1,...GREEN);await sleep(d);d*=0.9;
-  }
-  while(!c.stop){await sendColor(0,...GREEN);await sendColor(1,...PURPLE);await sleep(1000)}
-}
-
-async function patBreath(c){
-  const N=60;
-  while(!c.stop){
-    for(let i=0;i<N&&!c.stop;i++){const r=i/N;
-      await sendColor(0,GREEN[0]*r,GREEN[1]*r,GREEN[2]*r);
-      await sendColor(1,PURPLE[0]*(1-r),PURPLE[1]*(1-r),PURPLE[2]*(1-r));await sleep(100);}
-    for(let i=0;i<N&&!c.stop;i++){const r=i/N;
-      await sendColor(0,GREEN[0]*(1-r),GREEN[1]*(1-r),GREEN[2]*(1-r));
-      await sendColor(1,PURPLE[0]*r,PURPLE[1]*r,PURPLE[2]*r);await sleep(100);}
-  }
-}
-
-async function patBerserk(c){
-  while(!c.stop){
-    await sendAll(...RED);await sleep(500);
-    await sendAll(...BLACK);await sleep(500);
-  }
-}
-
-async function patStatic(c){
-  while(!c.stop){await sendColor(0,...GREEN);await sendColor(1,...PURPLE);await sleep(8000)}
-}
-
-async function patTidal(c){
-  const SPEED=0.035,PHASE=Math.PI*0.75;let t=0;
-  function wc(w){w=Math.max(0,Math.min(1,w));
-    if(w<.5){const r=w*2;return GREEN.map((v,i)=>v*(1-r)+OCEAN[i]*r)}
-    const r=(w-.5)*2;return OCEAN.map((v,i)=>v*(1-r)+PURPLE[i]*r);
-  }
-  while(!c.stop){
-    const mw=ph=>{const raw=Math.sin(t+ph)*.65+Math.sin(t*1.8+ph+.9)*.35;return(raw+1)/2};
-    await sendColor(0,...wc(mw(0)));await sendColor(1,...wc(mw(PHASE)));t+=SPEED;await sleep(50);
-  }
-}
-
-async function patEvangelion(c){
-  let t=0;
-  while(!c.stop){
-    const env=Math.sin(t*.8)**2, intensity=0.2+0.8*env;
-    if(env>0.92){await sendAll(...WHITE);}
-    else{
-      await sendColor(0,...GREEN.map(v=>v*intensity));
-      await sendColor(1,...PURPLE.map(v=>v*intensity));
-    }
-    t+=0.07;await sleep(50);
-  }
-}
-
-async function patRainbow(c){
-  // Hardware mode on triones (37=SMOOTH_RAINBOW), software tidal fallback on fff0
-  await sendMode(0,37,0x40);
-  // fff0 device gets software tidal
-  const SPEED=0.035,PHASE=Math.PI*.75;let t=0;
-  function wc(w){w=Math.max(0,Math.min(1,w));
-    if(w<.5){const r=w*2;return GREEN.map((v,i)=>v*(1-r)+OCEAN[i]*r)}
-    const r=(w-.5)*2;return OCEAN.map((v,i)=>v*(1-r)+PURPLE[i]*r);
-  }
-  while(!c.stop){
-    const raw=(Math.sin(t)*.65+Math.sin(t*1.8+.9)*.35+1)/2;
-    await sendColor(1,...wc(raw));t+=SPEED;await sleep(50);
-  }
-}
-
-async function patStrobe(c){
-  // Hardware RGB strobe on triones (98=RGB_STROBE), software red strobe on fff0
-  await sendMode(0,98,0x10);
-  while(!c.stop){
-    await sendColor(1,...RED);await sleep(400);
-    await sendColor(1,...BLACK);await sleep(400);
-  }
-}
-
-const PATTERNS={
-  synchro:patSynchro, breath:patBreath, berserk:patBerserk, static:patStatic,
-  tidal:patTidal, evangelion:patEvangelion, rainbow:patRainbow, strobe:patStrobe
+const DEFAULT_PATTERNS={
+  synchro:{label:'SYNCHRO TEST',theme:'green',desc:'accelerating swap flash'},breath:{label:'LILIN BREATH',theme:'purple',desc:'counter-fade pulse'},berserk:{label:'BERSERK',theme:'red',desc:'critical red override'},static:{label:'STATIC',theme:'orange',desc:'Unit-01 green / purple'},tidal:{label:'TIDAL WAVE',theme:'cyan',desc:'oceanic procedural flow'},evangelion:{label:'AWAKENING',theme:'white',desc:'EVA surge / white bloom'},rainbow:{label:'RAINBOW',theme:'gold',desc:'hardware assisted cycle'},strobe:{label:'SEELE STROBE',theme:'pink',desc:'rapid warning flash'},atfield:{label:'A.T. FIELD',theme:'gold',desc:'golden shield pulse'},dummy:{label:'DUMMY PLUG',theme:'red',desc:'corrupted unstable flicker'},magi:{label:'MAGI COMPUTATION',theme:'orange',desc:'logic-core activity'},angel:{label:'ANGEL ARRIVAL',theme:'blue',desc:'ominous encounter sequence'},longinus:{label:'SPEAR OF LONGINUS',theme:'red',desc:'crimson helical drive'},lcl:{label:'LCL IMMERSION',theme:'orange',desc:'organic amber fluid'},sync_ratio:{label:'SYNC RATIO',theme:'green',desc:'chaos becoming harmony'},plasma:{label:'S² ENGINE',theme:'purple',desc:'procedural plasma core'}
 };
-
-const READOUT={
-  synchro:'SYNCHRO TEST',breath:'LILIN BREATH',berserk:'BERSERK — CRITICAL',
-  static:'UNIT-01 STANDARD',tidal:'TIDAL WAVE',evangelion:'EVA-01 AWAKENING',
-  rainbow:'SMOOTH RAINBOW',strobe:'SEELE STROBE',custom:'CUSTOM COLOUR',idle:'— IDLE —'
-};
-
-// ── PATTERN RUNNER ──────────────────────────────────────
-async function runPattern(name){
-  if(ctrl){ctrl.stop=true;await sleep(150)}
-  ctrl={stop:false};activePattern=name;
-  setReadout(name);setActiveBtn(name);
-  await PATTERNS[name](ctrl);
-}
-
-async function activate(name){
-  if(!anyConnected()) return;
-  await powerOnAll();
-  runPattern(name);
-}
-
-async function shutdown(){
-  if(ctrl) ctrl.stop=true;
-  activePattern='idle';setReadout('idle');setActiveBtn(null);
-  await powerOffAll();
-  toast('SYSTEM OFFLINE');
-}
-
-// ── BLE SCAN & CONNECT ───────────────────────────────────
-async function scanDevice(idx){
-  setSlotConnecting(idx);
-  try{
-    const device=await navigator.bluetooth.requestDevice({
-      acceptAllDevices:true,
-      optionalServices:[SVC_TRIONES,SVC_FFF0]
-    });
-    toast(`Connecting to ${device.name||'device'}…`);
-    const server=await device.gatt.connect();
-
-    let char,type;
-    try{const s=await server.getPrimaryService(SVC_TRIONES);char=await s.getCharacteristic(CHR_TRIONES);type='triones';}
-    catch{
-      try{const s=await server.getPrimaryService(SVC_FFF0);char=await s.getCharacteristic(CHR_FFF0);type='fff0';}
-      catch{toast('Unsupported device',true);setSlotDisconnected(idx);return;}
-    }
-
-    slots[idx]={device,char,type,name:device.name||'Unknown'};
-
-    device.addEventListener('gattserverdisconnected',()=>{
-      slots[idx]=null;setSlotDisconnected(idx);
-      toast(`Unit ${idx+1} disconnected`,'err');updatePatternBtns();
-    });
-
-    setSlotConnected(idx,type,device.name||'Unknown');
-    updatePatternBtns();
-
-    if(activePattern!=='idle'){await powerOnAll();runPattern(activePattern);}
-    toast(`Unit ${idx+1} connected ✓`,'ok');
-
-  }catch(e){
-    if(e.name!=='NotFoundError') toast('Connection failed','err');
-    setSlotDisconnected(idx);
-  }
-}
-
-async function disconnectSlot(idx){
-  if(slots[idx]){try{slots[idx].device.gatt.disconnect()}catch{}}
-  slots[idx]=null;setSlotDisconnected(idx);updatePatternBtns();
-}
-
-// ── CUSTOM COLOUR ────────────────────────────────────────
-function updatePreview(){
-  const r=+document.getElementById('sR').value;
-  const g=+document.getElementById('sG').value;
-  const b=+document.getElementById('sB').value;
-  document.getElementById('vR').textContent=r;
-  document.getElementById('vG').textContent=g;
-  document.getElementById('vB').textContent=b;
-  const hex=`#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`.toUpperCase();
-  document.getElementById('colPreview').style.background=`rgb(${r},${g},${b})`;
-  // choose contrasting text
-  const luma=0.299*r+0.587*g+0.114*b;
-  document.getElementById('colPreview').style.color=luma>140?'rgba(0,0,0,.55)':'rgba(255,255,255,.6)';
-  document.getElementById('colPreview').textContent=hex;
-}
-
-function setQuick(r,g,b){
-  document.getElementById('sR').value=r;
-  document.getElementById('sG').value=g;
-  document.getElementById('sB').value=b;
-  updatePreview();
-}
-
-async function sendCustomColour(){
-  if(!anyConnected()) return;
-  const r=+document.getElementById('sR').value;
-  const g=+document.getElementById('sG').value;
-  const b=+document.getElementById('sB').value;
-  if(ctrl){ctrl.stop=true;await sleep(100)}
-  ctrl=null;activePattern='custom';
-  await powerOnAll();
-  await sendAll(r,g,b);
-  setReadout('custom');setActiveBtn(null);
-  toast('COLOUR TRANSMITTED','ok');
-}
-
-// ── UI HELPERS ───────────────────────────────────────────
-function setSlotConnecting(idx){
-  document.getElementById(`dot-${idx}`).className='dc-dot or';
-  document.getElementById(`name-${idx}`).textContent='CONNECTING…';
-  document.getElementById(`type-${idx}`).textContent='';
-  document.getElementById(`rssi-${idx}`).textContent='';
-  const b=document.getElementById(`scan-${idx}`);
-  b.textContent='SCANNING…';b.disabled=true;
-}
-
-function setSlotConnected(idx,type,name){
-  const dotC=type==='triones'?'gr':'pu';
-  const cardC=type==='triones'?'conn-gr':'conn-pu';
-  document.getElementById(`dot-${idx}`).className=`dc-dot ${dotC}`;
-  document.getElementById(`card-${idx}`).className=`dev-card ${cardC}`;
-  document.getElementById(`name-${idx}`).textContent=name;
-  document.getElementById(`type-${idx}`).textContent=type.toUpperCase()+' PROTOCOL';
-  const b=document.getElementById(`scan-${idx}`);
-  b.textContent='✕ DISCONNECT';b.className='dc-btn disc';b.disabled=false;
-  b.onclick=()=>disconnectSlot(idx);
-}
-
-function setSlotDisconnected(idx){
-  document.getElementById(`dot-${idx}`).className='dc-dot';
-  document.getElementById(`card-${idx}`).className='dev-card';
-  document.getElementById(`name-${idx}`).textContent='NOT PAIRED';
-  document.getElementById(`type-${idx}`).textContent='—';
-  document.getElementById(`rssi-${idx}`).textContent='';
-  const b=document.getElementById(`scan-${idx}`);
-  b.textContent='⌖ SCAN';b.className='dc-btn';b.disabled=false;
-  b.onclick=()=>scanDevice(idx);
-}
-
-const ALL_PATS=['synchro','breath','tidal','evangelion','rainbow','strobe','static','berserk'];
-
-function updatePatternBtns(){
-  const on=!!anyConnected();
-  [...ALL_PATS.map(n=>`pat-${n}`),'btn-off','btn-colour'].forEach(id=>{
-    const el=document.getElementById(id); if(el) el.disabled=!on;
-  });
-  if(!on){if(ctrl) ctrl.stop=true;activePattern='idle';setReadout('idle');setActiveBtn(null);}
-  updateHeaderStatus();
-}
-
-function setActiveBtn(name){
-  ALL_PATS.forEach(n=>document.getElementById(`pat-${n}`)?.classList.toggle('active',n===name));
-}
-
-function setReadout(name){
-  document.getElementById('readout').textContent=READOUT[name]||'— IDLE —';
-}
-
-function updateHeaderStatus(){
-  const on=!!anyConnected();
-  const dot=document.getElementById('hbar-dot');
-  const txt=document.getElementById('hbar-text');
-  dot.className='hbar-dot'+(on?' live':'');
-  txt.textContent=on?'UNITS ONLINE':'STANDBY';
-}
-
-// ── TOAST ────────────────────────────────────────────────
-let toastTimer;
-function toast(msg,type=''){
-  const t=document.getElementById('toast');
-  t.textContent=msg;t.className=`toast show${type?' '+type:''}`;
-  clearTimeout(toastTimer);
-  toastTimer=setTimeout(()=>t.classList.remove('show'),3000);
-}
-
-// ── CLOCK ────────────────────────────────────────────────
-function tick(){document.getElementById('hbar-clock').textContent=new Date().toTimeString().slice(0,8)}
-setInterval(tick,1000);tick();
-
-// ── INIT ─────────────────────────────────────────────────
-if(!navigator.bluetooth){
-  document.getElementById('noBt').style.display='block';
-  document.getElementById('mainUi').style.display='none';
-}
-updatePreview();
+let apiBase=localStorage.getItem('magiApiBase')||'http://localhost:8765';
+let patterns={...DEFAULT_PATTERNS};let active='idle';let online=false;let debounce;
+document.getElementById('apiBase').value=apiBase;
+function api(path){return apiBase.replace(/\/$/,'')+path}
+async function post(path,body){const res=await fetch(api(path),{method:'POST',headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});if(!res.ok)throw new Error((await res.text()).slice(0,120));return res.json()}
+async function get(path){const res=await fetch(api(path));if(!res.ok)throw new Error('offline');return res.json()}
+function saveApiBase(){apiBase=document.getElementById('apiBase').value.trim()||'http://localhost:8765';localStorage.setItem('magiApiBase',apiBase);toast('BRIDGE TARGET UPDATED','ok');poll()}
+function renderPatterns(){const box=document.getElementById('patterns');box.innerHTML='';Object.entries(patterns).forEach(([key,p],idx)=>{const b=document.createElement('button');b.className=`btn theme-${p.theme||'orange'}`;b.id='pat-'+key;b.onclick=()=>activate(key);b.innerHTML=`<span class="code">PATTERN-${String(idx+1).padStart(2,'0')}</span><span class="name">${p.label||key}</span><span class="desc">${p.desc||'MAGI protocol'}</span>`;box.appendChild(b)});document.getElementById('patternCount').textContent=Object.keys(patterns).length+' LOADED';setActive(active)}
+function setActive(name){active=name;Object.keys(patterns).forEach(k=>document.getElementById('pat-'+k)?.classList.toggle('active',k===name));const label=patterns[name]?.label||name||'—';document.getElementById('readout').textContent=name==='idle'?'— IDLE —':label.toUpperCase();document.getElementById('activeMini').textContent='ACTIVE: '+(name==='idle'?'—':label.toUpperCase())}
+async function activate(name){try{await post('/pattern/'+name);setActive(name);toast((patterns[name]?.label||name)+' ACTIVE','ok')}catch(e){toast('PATTERN FAILED: '+e.message,'err')}}
+async function scene(name){try{await post('/scene/'+name);setActive('scene:'+name);toast(name.replace('_',' ').toUpperCase()+' COMPLETE','ok');setTimeout(poll,250)}catch(e){toast('SCENE FAILED: '+e.message,'err')}}
+async function power(action){try{await post('/power/'+action);toast('POWER '+action.toUpperCase(),'ok');poll()}catch(e){toast('POWER FAILED','err')}}
+async function shutdown(){try{await post('/shutdown');setActive('idle');toast('SYSTEM OFFLINE','ok');poll()}catch(e){toast('SHUTDOWN FAILED','err')}}
+function randomPattern(){const keys=Object.keys(patterns).filter(k=>!['strobe','berserk','dummy'].includes(k));activate(keys[Math.floor(Math.random()*keys.length)])}
+function paramChanged(){['speed','brightness','intensity'].forEach(id=>document.getElementById(id+'Out').textContent=(+document.getElementById(id).value).toFixed(2));clearTimeout(debounce);debounce=setTimeout(async()=>{try{await post('/params',{speed:+speed.value,brightness:+brightness.value,intensity:+intensity.value});toast('PARAMETERS UPDATED','ok')}catch(e){toast('PARAM UPDATE FAILED','err')}},180)}
+function colourChanged(){const r=+document.getElementById('r').value,g=+document.getElementById('g').value,b=+document.getElementById('b').value;['r','g','b'].forEach(id=>document.getElementById(id+'Out').textContent=document.getElementById(id).value);const hex='#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('').toUpperCase();const p=document.getElementById('preview');p.style.background=`rgb(${r},${g},${b})`;p.textContent=hex;p.style.color=(0.299*r+0.587*g+0.114*b)>140?'rgba(0,0,0,.58)':'rgba(255,255,255,.7)'}
+function setColour(r,g,b){document.getElementById('r').value=r;document.getElementById('g').value=g;document.getElementById('b').value=b;colourChanged()}
+async function sendColour(){try{await post('/color',{r:+r.value,g:+g.value,b:+b.value});setActive('custom');toast('COLOUR TRANSMITTED','ok')}catch(e){toast('COLOUR FAILED','err')}}
+function renderSwatches(){const sw=[[255,0,0],[255,102,0],[255,215,0],[57,255,20],[0,200,255],[20,80,255],[128,0,255],[255,0,255],[255,255,255],[0,0,0]];const box=document.getElementById('swatches');sw.forEach(c=>{const d=document.createElement('div');d.className='swatch';d.style.background=`rgb(${c.join(',')})`;d.onclick=()=>setColour(...c);box.appendChild(d)})}
+async function poll(){try{const s=await get('/status');online=true;patterns=Object.fromEntries(Object.entries(s.patterns||DEFAULT_PATTERNS).map(([k,v])=>[k,{...DEFAULT_PATTERNS[k],...v}]));if(!document.getElementById('pat-'+Object.keys(patterns)[0]))renderPatterns();setActive(s.pattern||'idle');document.getElementById('netDot').className='dot live';document.getElementById('netText').textContent=s.connected?'BRIDGE ONLINE / UNITS LINKED':'BRIDGE ONLINE / WAITING FOR UNITS';document.getElementById('pollState').textContent='SIGNAL OK';document.getElementById('dev1').className='dev '+(s.devices?.Set_1?'on':'');document.getElementById('dev2').className='dev '+(s.devices?.Set_2?'on':'');document.querySelector('#dev1 .dev-type').textContent=s.devices?.Set_1?'CONNECTED / TRIONES':'SCANNING';document.querySelector('#dev2 .dev-type').textContent=s.devices?.Set_2?'CONNECTED / FFF0':'SCANNING';if(s.params){speed.value=s.params.speed??1;brightness.value=s.params.brightness??1;intensity.value=s.params.intensity??1;paramChanged();document.getElementById('paramsText').textContent=`speed ${(+speed.value).toFixed(2)} / brightness ${(+brightness.value).toFixed(2)} / intensity ${(+intensity.value).toFixed(2)}`}}catch(e){online=false;document.getElementById('netDot').className='dot warn';document.getElementById('netText').textContent='BRIDGE OFFLINE';document.getElementById('pollState').textContent='NO SIGNAL'}}
+function toast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+type;clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>t.classList.remove('show'),2600)}
+function tick(){document.getElementById('clock').textContent=new Date().toTimeString().slice(0,8)}
+renderPatterns();renderSwatches();colourChanged();paramChanged();tick();setInterval(tick,1000);poll();setInterval(poll,2500);
 </script>
 </body>
 </html>
