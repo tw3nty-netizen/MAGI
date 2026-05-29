@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#050505">
-<title>MAGI v7.7 — MELK Mode 17</title>
+<title>MAGI v7.8 — Brightness Wave</title>
 <style>
 :root{--or:#ff6600;--or2:#ff9b22;--gr:#39ff14;--pu:#8b19ff;--re:#ff0033;--cy:#00c8ff;--go:#ffd700;--wh:#fff;--bg:#050505;--panel:#0b0600;--line:#321900;--text:#f0d7b0;--dim:#8a7458;--good:rgba(57,255,20,.2);--bad:rgba(255,0,51,.2);--mono:Consolas,"Share Tech Mono",monospace;--disp:"Rajdhani",Arial,sans-serif;--safe-t:env(safe-area-inset-top,0px);--safe-b:env(safe-area-inset-bottom,0px)}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}html,body{min-height:100dvh;background:var(--bg);color:var(--text);font-family:var(--disp);overflow-x:hidden}body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 75% 38% at 50% 0%,rgba(255,102,0,.13),transparent 62%),radial-gradient(ellipse 42% 65% at 100% 100%,rgba(128,0,255,.09),transparent 58%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V17L28 0l28 17v33L28 66z' fill='none' stroke='%23ff660014' stroke-width='1'/%3E%3C/svg%3E")}body:after{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.10) 3px,rgba(0,0,0,.10) 4px)}
@@ -13,7 +13,7 @@
 </head>
 <body>
 <div class="app">
-<header class="header"><div class="brand"><svg class="sigil" viewBox="0 0 100 100" fill="none"><polygon points="50,4 95,28 95,72 50,96 5,72 5,28" stroke="#ff6600" stroke-width="1.8"/><polygon points="50,18 82,36 82,64 50,82 18,64 18,36" stroke="#ff6600" stroke-width=".8" opacity=".4"/><line x1="50" y1="4" x2="50" y2="96" stroke="#ff6600" opacity=".2"/><line x1="5" y1="28" x2="95" y2="72" stroke="#ff6600" opacity=".2"/><line x1="95" y1="28" x2="5" y2="72" stroke="#ff6600" opacity=".2"/><circle cx="50" cy="50" r="8" fill="#ff6600"/><circle cx="50" cy="50" r="15" stroke="#ff6600" opacity=".35"/></svg><div><div class="title">MAGI v6</div><div class="sub">PURE BLUETOOTH / AUDIO REACTIVE / NO LAN</div></div></div><div class="statusbar"><div><span id="netDot" class="dot"></span><span id="netText">BLUETOOTH STANDBY</span></div><div><span id="audioDot" class="dot"></span><span id="audioText">AUDIO OFFLINE</span></div><div id="clock">--:--:--</div><div id="activeMini">ACTIVE: —</div></div></header>
+<header class="header"><div class="brand"><svg class="sigil" viewBox="0 0 100 100" fill="none"><polygon points="50,4 95,28 95,72 50,96 5,72 5,28" stroke="#ff6600" stroke-width="1.8"/><polygon points="50,18 82,36 82,64 50,82 18,64 18,36" stroke="#ff6600" stroke-width=".8" opacity=".4"/><line x1="50" y1="4" x2="50" y2="96" stroke="#ff6600" opacity=".2"/><line x1="5" y1="28" x2="95" y2="72" stroke="#ff6600" opacity=".2"/><line x1="95" y1="28" x2="5" y2="72" stroke="#ff6600" opacity=".2"/><circle cx="50" cy="50" r="8" fill="#ff6600"/><circle cx="50" cy="50" r="15" stroke="#ff6600" opacity=".35"/></svg><div><div class="title">MAGI v7.8</div><div class="sub">PURE BLUETOOTH / BRIGHTNESS WAVE / AUDIO REACTIVE</div></div></div><div class="statusbar"><div><span id="netDot" class="dot"></span><span id="netText">BLUETOOTH STANDBY</span></div><div><span id="audioDot" class="dot"></span><span id="audioText">AUDIO OFFLINE</span></div><div id="clock">--:--:--</div><div id="activeMini">ACTIVE: —</div></div></header>
 <div id="noBt" class="panel warning hidden"><div class="label">// BLUETOOTH UNAVAILABLE</div><div class="small">This app is direct Web Bluetooth only. Use Chrome or Edge with Bluetooth enabled. No Python server, no LAN bridge, no localhost connection.</div></div>
 <section class="grid">
 <div class="panel"><div class="label"><span>// PROTOCOL SELECT</span><span id="patternCount">LOCAL</span></div><div class="patterns" id="patterns"></div></div>
@@ -70,6 +70,75 @@ async function stopPattern(){if(ctrl){ctrl.stop=true;await sleep(90)}ctrl=null;s
 async function patStatic(c){while(!c.stop){await sendPalette([GREEN,PURPLE,GREEN,PURPLE,[20,20,20]]);await sleep(1200)}}
 async function patLcl(c){let t=0;while(!c.stop){const cols=[];for(let n=0;n<5;n++){let w=(noiseWave(t+n*.8)+1)/2;cols.push(lerpColor([255,35,0],[255,165,0],w))}await sendPalette(cols);t+=.03*PARAMS.speed;await sleep(40)}}
 async function patWaterFlow(c){let t=0;const order=[0,1,4,3,2];while(!c.stop){let cols=Array(5).fill(BLACK);for(let step=0;step<5;step++){let i=order[step],phase=t-step*.72;let crest=(Math.sin(phase)+1)/2;let foam=Math.max(0,crest-.78)*4.5*PARAMS.intensity;let depth=(noiseWave(t*.45+step*.9)+1)/2;let base=lerpColor([0,18,70],[0,190,255],crest*.75+depth*.25);cols[i]=lerpColor(base,WHITE,Math.min(1,foam));}await sendPalette(cols);t+=.09*PARAMS.speed;await sleep(Math.max(26,42/PARAMS.speed))}}
+
+async function patBlueBrightnessWave(c){
+  /*
+    SINGLE-COLOUR BRIGHTNESS WAVE
+    Uses one blue/cyan colour only, then changes each controller's brightness.
+    This avoids the harsh blue/white flashing and gives the best wave illusion
+    possible on single-zone BLE strip controllers.
+
+    Frame idea on four wall zones:
+      dim  dim  dim  dim
+      high mid  dim  low
+      mid  high mid  dim
+      dim  mid  high mid
+      low  dim  mid  high
+  */
+  const wallOrder=[0,1,2,3];
+  const tvIndex=4;
+  const base=[0,135,255];
+  let pos=0;
+  const minLevel=0.10;
+  const trailLevel=0.42;
+  const crestLevel=1.00;
+
+  function levelForDistance(d,n){
+    // Forward travelling crest with a trailing wake behind it.
+    // d=0 crest, d near n-1 is the section behind the crest in a clockwise loop.
+    if(d<0.001) return crestLevel;
+    if(d<1.001) return trailLevel;
+    if(d>n-1.001) return 0.62; // one section behind, stronger blue tail
+    return minLevel;
+  }
+
+  function scaleColour(col,level){
+    const gain=Math.max(0,Math.min(1,level*PARAMS.intensity));
+    return col.map(v=>clamp(v*gain));
+  }
+
+  while(!c.stop){
+    const active=wallOrder.filter(i=>slots[i]);
+    const cols=Array(5).fill(0).map(()=>scaleColour(base,minLevel));
+
+    if(active.length){
+      const n=active.length;
+      const head=Math.floor(pos)%n;
+      const blend=pos-head;
+
+      // Start all wall zones dim blue.
+      for(const idx of active) cols[idx]=scaleColour(base,minLevel);
+
+      // Smoothly blend the crest into the next section so it moves rather than pops.
+      for(let k=0;k<n;k++){
+        const idx=active[k];
+        const d=(k-head+n)%n;
+        const dPrev=(k-((head-1+n)%n)+n)%n;
+        let level=levelForDistance(d,n)*(1-blend)+levelForDistance(dPrev,n)*blend;
+        cols[idx]=scaleColour(base,level);
+      }
+
+      // TV is not part of the wall circuit yet: keep it dim blue when connected.
+      if(slots[tvIndex]) cols[tvIndex]=scaleColour(base,0.18);
+      await sendPalette(cols);
+      pos=(pos+0.070*PARAMS.speed)%n;
+    }else{
+      await sendPalette(cols);
+    }
+
+    await sleep(Math.max(65,130/PARAMS.speed));
+  }
+}
 async function patWaterChase(c){
   /*
     LIQUID WATER CHASE — smooth travelling crest.
@@ -161,7 +230,7 @@ async function patAudioLcl(c){while(!c.stop){const a=AUDIO;await sendPalette([[2
 async function patAudioRamiel(c){while(!c.stop){const a=AUDIO;let crack=a.treble>.62||a.beat;let c1=crack?WHITE:lerpColor([0,30,140],OCEAN,Math.min(1,a.bass+a.mid));let c2=lerpColor(BLUE,WHITE,Math.min(1,a.treble*1.4));await sendPalette([c1,c2,c1,c2,crack?WHITE:lerpColor(BLUE,OCEAN,a.volume)]);await sleep(crack?48:36)}}
 async function patAudioMagi(c){const cols=[GREEN,ORANGE,RED,OCEAN,WHITE,PURPLE];while(!c.stop){const a=AUDIO;let i=Math.floor((a.bass*2+a.mid*3+a.treble*4)*PARAMS.intensity)%cols.length;await sendPalette([cols[i],cols[(i+2)%cols.length],cols[(i+3)%cols.length],cols[(i+1)%cols.length],cols[(i+4)%cols.length]]);await sleep(55-Math.min(30,a.volume*30))}}
 async function patAudioReactor(c){let t=0;while(!c.stop){const a=AUDIO;let pulse=Math.min(1,a.bass*1.7+Math.max(0,noiseWave(t))*.25);await sendPalette([lerpColor([35,0,80],GREEN,pulse),lerpColor([20,0,70],ORANGE,Math.min(1,a.mid*1.3+a.treble*.5)),lerpColor([35,0,80],GREEN,Math.min(1,pulse*.75+a.treble*.25)),lerpColor([20,0,70],ORANGE,Math.min(1,a.mid+a.bass*.4)),a.beat?WHITE:lerpColor([5,0,20],ORANGE,a.bass)]);t+=.04;await sleep(34)}}
-const PATTERNS={static:{label:'STATIC',theme:'orange',desc:'green / purple hold',fn:patStatic},lcl:{label:'LCL FLUID',theme:'orange',desc:'warm organic drift',fn:patLcl},water_flow:{label:'WATER FLOW',theme:'cyan',desc:'wave travels round room',fn:patWaterFlow},water_chase:{label:'WATER CHASE',theme:'cyan',desc:'smooth crest racing round walls',fn:patWaterChase},melk_mode17:{label:'MELK MODE 17',theme:'cyan',desc:'hardware rainbow chase',fn:patMelkMode17},atfield:{label:'A.T. FIELD',theme:'gold',desc:'gold shield pulse',fn:patAtField},ramiel:{label:'RAMIEL PULSE',theme:'cyan',desc:'crystal blue geometry',fn:patRamiel},terminal:{label:'TERMINAL DOGMA',theme:'purple',desc:'reactor ambience',fn:patTerminal},third:{label:'THIRD IMPACT',theme:'white',desc:'white gold collapse',fn:patThirdImpact},knife:{label:'PROG KNIFE',theme:'green',desc:'sharp slice flashes',fn:patKnife},seele:{label:'SEELE MONOLITH',theme:'blue',desc:'dark cold pulses',fn:patSeele},audio_bass:{label:'NERV BASS SYNC',theme:'audio',desc:'bass kicks flash white',fn:patAudioBass,needsAudio:true},audio_drop:{label:'BERSERK DROP',theme:'red',desc:'drop detector strobe',fn:patAudioDrop,needsAudio:true},audio_lcl:{label:'LCL SPECTRUM',theme:'orange',desc:'audio fluid spectrum',fn:patAudioLcl,needsAudio:true},audio_ramiel:{label:'RAMIEL AUDIO',theme:'cyan',desc:'treble crystal cracks',fn:patAudioRamiel,needsAudio:true},audio_magi:{label:'MAGI AUDIO',theme:'audio',desc:'frequency computation',fn:patAudioMagi,needsAudio:true},audio_reactor:{label:'DOGMA REACTOR',theme:'purple',desc:'bass reactor surges',fn:patAudioReactor,needsAudio:true}};
+const PATTERNS={static:{label:'STATIC',theme:'orange',desc:'green / purple hold',fn:patStatic},lcl:{label:'LCL FLUID',theme:'orange',desc:'warm organic drift',fn:patLcl},water_flow:{label:'WATER FLOW',theme:'cyan',desc:'wave travels round room',fn:patWaterFlow},blue_brightness_wave:{label:'BLUE BRIGHTNESS WAVE',theme:'cyan',desc:'single-colour brightness chase',fn:patBlueBrightnessWave},water_chase:{label:'WATER CHASE',theme:'cyan',desc:'smooth crest racing round walls',fn:patWaterChase},melk_mode17:{label:'MELK MODE 17',theme:'cyan',desc:'hardware rainbow chase',fn:patMelkMode17},atfield:{label:'A.T. FIELD',theme:'gold',desc:'gold shield pulse',fn:patAtField},ramiel:{label:'RAMIEL PULSE',theme:'cyan',desc:'crystal blue geometry',fn:patRamiel},terminal:{label:'TERMINAL DOGMA',theme:'purple',desc:'reactor ambience',fn:patTerminal},third:{label:'THIRD IMPACT',theme:'white',desc:'white gold collapse',fn:patThirdImpact},knife:{label:'PROG KNIFE',theme:'green',desc:'sharp slice flashes',fn:patKnife},seele:{label:'SEELE MONOLITH',theme:'blue',desc:'dark cold pulses',fn:patSeele},audio_bass:{label:'NERV BASS SYNC',theme:'audio',desc:'bass kicks flash white',fn:patAudioBass,needsAudio:true},audio_drop:{label:'BERSERK DROP',theme:'red',desc:'drop detector strobe',fn:patAudioDrop,needsAudio:true},audio_lcl:{label:'LCL SPECTRUM',theme:'orange',desc:'audio fluid spectrum',fn:patAudioLcl,needsAudio:true},audio_ramiel:{label:'RAMIEL AUDIO',theme:'cyan',desc:'treble crystal cracks',fn:patAudioRamiel,needsAudio:true},audio_magi:{label:'MAGI AUDIO',theme:'audio',desc:'frequency computation',fn:patAudioMagi,needsAudio:true},audio_reactor:{label:'DOGMA REACTOR',theme:'purple',desc:'bass reactor surges',fn:patAudioReactor,needsAudio:true}};
 async function ensureAudioContext(){if(!AUDIO.ctx)AUDIO.ctx=new (window.AudioContext||window.webkitAudioContext)();if(AUDIO.ctx.state==='suspended')await AUDIO.ctx.resume()}function stopAudio(){try{AUDIO.stream?.getTracks()?.forEach(t=>t.stop())}catch{}try{AUDIO.source?.disconnect()}catch{}AUDIO.active=false;AUDIO.name='none';AUDIO.stream=null;AUDIO.source=null;document.getElementById('filePlayer').pause();updateAudioUi();toast('AUDIO STOPPED')}async function attachStream(stream,name){stopAudio();await ensureAudioContext();AUDIO.stream=stream;AUDIO.analyser=AUDIO.ctx.createAnalyser();AUDIO.analyser.fftSize=1024;AUDIO.analyser.smoothingTimeConstant=.45;AUDIO.data=new Uint8Array(AUDIO.analyser.frequencyBinCount);AUDIO.source=AUDIO.ctx.createMediaStreamSource(stream);AUDIO.source.connect(AUDIO.analyser);AUDIO.active=true;AUDIO.name=name;audioLoop();updateAudioUi();toast('AUDIO ONLINE: '+name,'ok')}async function startMicAudio(){try{const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});await attachStream(stream,'microphone')}catch(e){toast('MIC AUDIO FAILED','err');console.warn(e)}}async function startScreenAudio(){try{const stream=await navigator.mediaDevices.getDisplayMedia({video:true,audio:true});if(!stream.getAudioTracks().length){toast('NO AUDIO TRACK SHARED','err');stream.getTracks().forEach(t=>t.stop());return}await attachStream(stream,'tab/system capture');}catch(e){toast('TAB/SYSTEM AUDIO FAILED','err');console.warn(e)}}async function startFileAudio(file){if(!file)return;try{stopAudio();await ensureAudioContext();const player=document.getElementById('filePlayer');player.src=URL.createObjectURL(file);player.classList.remove('hidden');AUDIO.analyser=AUDIO.ctx.createAnalyser();AUDIO.analyser.fftSize=1024;AUDIO.data=new Uint8Array(AUDIO.analyser.frequencyBinCount);AUDIO.source=AUDIO.ctx.createMediaElementSource(player);AUDIO.source.connect(AUDIO.analyser);AUDIO.analyser.connect(AUDIO.ctx.destination);AUDIO.active=true;AUDIO.name='file: '+file.name;await player.play();audioLoop();updateAudioUi();toast('AUDIO FILE ONLINE','ok')}catch(e){toast('FILE AUDIO FAILED','err');console.warn(e)}}function bandAvg(data,sr,lo,hi){const ny=sr/2,bin=ny/data.length;let sum=0,n=0;for(let i=Math.max(0,Math.floor(lo/bin));i<Math.min(data.length,Math.ceil(hi/bin));i++){sum+=data[i];n++}return n?sum/n/255:0}function audioLoop(){if(AUDIO.raf)cancelAnimationFrame(AUDIO.raf);const step=()=>{if(!AUDIO.active||!AUDIO.analyser)return;AUDIO.analyser.getByteFrequencyData(AUDIO.data);const sr=AUDIO.ctx.sampleRate;let rb=bandAvg(AUDIO.data,sr,20,160)*PARAMS.sensitivity,rm=bandAvg(AUDIO.data,sr,160,1600)*PARAMS.sensitivity,rt=bandAvg(AUDIO.data,sr,1600,9000)*PARAMS.sensitivity;let rv=(rb+rm+rt)/3;rb=Math.min(1,rb);rm=Math.min(1,rm);rt=Math.min(1,rt);rv=Math.min(1,rv);const s=PARAMS.smoothing;AUDIO.bass=AUDIO.bass*s+rb*(1-s);AUDIO.mid=AUDIO.mid*s+rm*(1-s);AUDIO.treble=AUDIO.treble*s+rt*(1-s);AUDIO.volume=AUDIO.volume*s+rv*(1-s);const now=performance.now();AUDIO.beat=rb>PARAMS.threshold&&rb>AUDIO.rawBass*1.10&&now-AUDIO.lastBeat>210;if(AUDIO.beat)AUDIO.lastBeat=now;AUDIO.drop=rv-AUDIO.prevVol>.23&&rv>.45;AUDIO.prevVol=rv;AUDIO.rawBass=rb;AUDIO.rawMid=rm;AUDIO.rawTreble=rt;AUDIO.rawVol=rv;paintAudio();AUDIO.raf=requestAnimationFrame(step)};step()}function paintAudio(){const set=(id,v)=>{document.getElementById(id+'Fill').style.width=Math.round(v*100)+'%';document.getElementById(id+'Txt').textContent=v.toFixed(2)};set('bass',AUDIO.bass);set('mid',AUDIO.mid);set('treble',AUDIO.treble);const cnv=document.getElementById('viz'),ctx=cnv.getContext('2d'),w=cnv.width,h=cnv.height;ctx.clearRect(0,0,w,h);ctx.fillStyle='#020202';ctx.fillRect(0,0,w,h);if(!AUDIO.data)return;const step=Math.ceil(AUDIO.data.length/80),bw=w/80;for(let i=0;i<80;i++){let v=AUDIO.data[i*step]/255,y=h-v*h;ctx.fillStyle=i<15?'#39ff14':i<45?'#ff6600':'#00c8ff';ctx.fillRect(i*bw,h,bw-1,-v*h)}if(AUDIO.beat){ctx.fillStyle='rgba(255,255,255,.55)';ctx.fillRect(0,0,w,h)}}function updateAudioUi(){document.getElementById('audioDot').className='dot '+(AUDIO.active?'live':'');document.getElementById('audioText').textContent=AUDIO.active?'AUDIO ONLINE':'AUDIO OFFLINE';document.getElementById('audioSourceText').textContent='Source: '+AUDIO.name+(AUDIO.name==='tab/system capture'?' — choose a YouTube tab/window and tick share audio.':'')}
 function buildPatterns(){const box=document.getElementById('patterns');box.innerHTML='';Object.entries(PATTERNS).forEach(([id,p],idx)=>{const b=document.createElement('button');b.className=`btn theme-${p.theme}`;b.id='pat-'+id;b.onclick=()=>runPattern(id);b.innerHTML=`<span class="code">PATTERN-${String(idx+1).padStart(2,'0')}${p.needsAudio?' / AUDIO':''}</span><span class="name">${p.label}</span><span class="desc">${p.desc}</span>`;box.appendChild(b)});document.getElementById('patternCount').textContent=Object.keys(PATTERNS).length+' LOCAL'}
 function buildDeviceGrid(){const box=document.getElementById('deviceGrid');box.innerHTML='';DEVICE_SLOTS.forEach((slot,i)=>{const d=document.createElement('div');d.className='dev';d.id='dev'+i;d.innerHTML=`<div><div class="dev-name">${slot.label}</div><div class="dev-type">${slot.desc}</div><div class="dev-type" id="devType${i}">NOT PAIRED</div></div><button class="btn action ok" id="scan${i}" onclick="scanDevice(${i})">SCAN ${slot.label}</button>`;box.appendChild(d)})}
