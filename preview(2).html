@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>MAGI — MELK / HappyLighting Mode Scanner</title>
+<style>
+:root{--bg:#050505;--panel:#100800;--or:#ff6600;--gr:#39ff14;--cy:#00c8ff;--re:#ff0033;--text:#f0dfc0;--dim:#725438;--border:#321800;font-family:system-ui,-apple-system,Segoe UI,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#1b0c00,#050505 55%);color:var(--text);min-height:100vh;padding:18px}.app{max-width:760px;margin:auto}.title{letter-spacing:.18em;color:var(--or);font-weight:800;font-size:1.6rem}.sub{color:var(--dim);font-family:monospace;margin:.35rem 0 1rem}.panel{background:linear-gradient(150deg,var(--panel),#060300);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0;box-shadow:0 0 20px #0008}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}@media(max-width:620px){.grid{grid-template-columns:1fr}}
+button{background:#080400;color:var(--or);border:1px solid var(--or);border-radius:6px;padding:12px 14px;font-weight:700;letter-spacing:.08em;cursor:pointer}button:disabled{opacity:.35;cursor:not-allowed}button.good{color:var(--gr);border-color:var(--gr)}button.danger{color:var(--re);border-color:var(--re)}button.blue{color:var(--cy);border-color:var(--cy)}select,input{width:100%;background:#050505;color:var(--text);border:1px solid var(--border);padding:10px;border-radius:6px;font-size:1rem}.read{font-family:monospace;background:#050505;border:1px solid #2b1600;border-radius:6px;padding:12px;margin-top:10px;white-space:pre-wrap;color:#ffd6a0;max-height:220px;overflow:auto}.big{font-size:2rem;color:var(--gr);font-family:monospace;font-weight:800}.small{font-family:monospace;color:var(--dim);font-size:.85rem}label{display:block;color:var(--dim);font-family:monospace;margin:8px 0 4px}input[type=range]{width:100%}.warn{border-color:#5c2500;color:#ffb36a}.kbd{font-family:monospace;color:var(--cy)}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="title">MAGI MELK SCANNER</div>
+  <div class="sub">HappyLighting / MELK-OA21 mode finder — pure Web Bluetooth</div>
+
+  <div class="panel warn">
+    <b>Use this on MELK-OA21 3B.</b><br>
+    It connects to <span class="kbd">FFF0 / FFF3</span> and lets you try likely built-in mode command families without pasting hex.
+  </div>
+
+  <div class="panel">
+    <div class="row">
+      <button id="connectBtn">⌁ CONNECT MELK</button>
+      <button id="onBtn" disabled class="good">POWER ON</button>
+      <button id="offBtn" disabled class="danger">POWER OFF</button>
+      <button id="redBtn" disabled>RED TEST</button>
+      <button id="blueBtn" disabled class="blue">BLUE TEST</button>
+    </div>
+    <div class="read" id="status">Not connected.</div>
+  </div>
+
+  <div class="panel">
+    <div class="grid">
+      <div>
+        <label>Command family</label>
+        <select id="family">
+          <option value="fff0a">FFF0-A: 7E 00 03 04 mode speed 00 EF</option>
+          <option value="fff0b">FFF0-B: 7E 00 03 03 mode speed 00 EF</option>
+          <option value="fff0c">FFF0-C: 7E 00 03 05 mode speed 00 EF</option>
+          <option value="bb">Triones-style: BB mode speed 44</option>
+        </select>
+      </div>
+      <div>
+        <label>Mode number decimal</label>
+        <input id="modeNum" type="number" min="1" max="255" value="1">
+      </div>
+      <div>
+        <label>Speed decimal: 1 fastest, 255 slowest</label>
+        <input id="speedNum" type="number" min="1" max="255" value="48">
+      </div>
+      <div>
+        <label>Auto-scan delay ms</label>
+        <input id="delayNum" type="number" min="500" max="5000" value="1600">
+      </div>
+    </div>
+
+    <label>Mode</label>
+    <input id="modeRange" type="range" min="1" max="213" value="1">
+    <label>Speed</label>
+    <input id="speedRange" type="range" min="1" max="255" value="48">
+
+    <div class="row" style="margin-top:12px">
+      <button id="prevBtn" disabled>◀ MODE -</button>
+      <button id="sendBtn" disabled class="blue">SEND MODE</button>
+      <button id="nextBtn" disabled>MODE + ▶</button>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button id="autoBtn" disabled>▶ AUTO SCAN</button>
+      <button id="stopBtn" disabled class="danger">■ STOP</button>
+      <button id="markBtn" disabled class="good">★ SAVE AS WATER</button>
+    </div>
+
+    <div class="read" id="cmdBox">Command will show here.</div>
+  </div>
+
+  <div class="panel">
+    <div class="small">Saved candidate</div>
+    <div class="big" id="saved">—</div>
+    <div class="read" id="log">Log:</div>
+  </div>
+</div>
+<script>
+const SVC_FFF0='0000fff0-0000-1000-8000-00805f9b34fb';
+const CHR_FFF3='0000fff3-0000-1000-8000-00805f9b34fb';
+const SVC_FFE0='0000ffe0-0000-1000-8000-00805f9b34fb';
+const CHR_FFE1='0000ffe1-0000-1000-8000-00805f9b34fb';
+let device=null, char=null, type='unknown', autoTimer=null;
+const $=id=>document.getElementById(id);
+function byte(n){return Math.max(0,Math.min(255,Number(n)||0))&255}
+function hex2(n){return byte(n).toString(16).padStart(2,'0').toUpperCase()}
+function bytesToHex(a){return Array.from(a).map(hex2).join(' ')}
+function log(msg){$('log').textContent += '\n' + new Date().toTimeString().slice(0,8) + '  ' + msg; $('log').scrollTop=$('log').scrollHeight;}
+function setStatus(msg){$('status').textContent=msg;}
+function setEnabled(on){['onBtn','offBtn','redBtn','blueBtn','prevBtn','sendBtn','nextBtn','autoBtn','markBtn'].forEach(id=>$(id).disabled=!on)}
+function syncInputs(src){ if(src==='range'){ $('modeNum').value=$('modeRange').value; $('speedNum').value=$('speedRange').value; } else { $('modeRange').value=$('modeNum').value; $('speedRange').value=$('speedNum').value; } updateCmdBox(); }
+function cmdMode(){
+  const m=byte($('modeNum').value), s=byte($('speedNum').value), f=$('family').value;
+  if(f==='bb') return new Uint8Array([0xBB,m,s,0x44]);
+  if(f==='fff0b') return new Uint8Array([0x7E,0x00,0x03,0x03,m,s,0x00,0xEF]);
+  if(f==='fff0c') return new Uint8Array([0x7E,0x00,0x03,0x05,m,s,0x00,0xEF]);
+  return new Uint8Array([0x7E,0x00,0x03,0x04,m,s,0x00,0xEF]);
+}
+function updateCmdBox(){const m=Number($('modeNum').value), s=Number($('speedNum').value), c=cmdMode();$('cmdBox').textContent=`Family: ${$('family').selectedOptions[0].text}\nDecimal mode: ${m}\nHex mode: 0x${hex2(m)}\nSpeed: ${s} / 0x${hex2(s)}\nCommand: ${bytesToHex(c)}`;}
+async function writeBytes(bytes){if(!char) throw new Error('Not connected'); try{await char.writeValueWithoutResponse(bytes);}catch(e){await char.writeValue(bytes);}}
+async function connect(){
+  if(!navigator.bluetooth){alert('Web Bluetooth needs Chrome or Edge. Firefox will not work.');return;}
+  try{
+    setStatus('Opening Bluetooth chooser...');
+    device=await navigator.bluetooth.requestDevice({acceptAllDevices:true,optionalServices:[SVC_FFF0,SVC_FFE0]});
+    device.addEventListener('gattserverdisconnected',()=>{char=null;setEnabled(false);setStatus('Disconnected.');log('Disconnected');});
+    setStatus('Connecting to '+(device.name||'device')+'...');
+    const server=await device.gatt.connect();
+    try{const s=await server.getPrimaryService(SVC_FFF0); char=await s.getCharacteristic(CHR_FFF3); type='FFF0/FFF3';}
+    catch(e1){const s=await server.getPrimaryService(SVC_FFE0); char=await s.getCharacteristic(CHR_FFE1); type='FFE0/FFE1';}
+    setEnabled(true); setStatus(`Connected: ${device.name||'Unknown'}\nProtocol: ${type}\nReady to scan MELK/HappyLighting modes.`); log('Connected '+(device.name||'Unknown')+' using '+type);
+  }catch(e){setStatus('Connect failed: '+e.message); log('Connect failed: '+e.message);}
+}
+async function powerOn(){const c=new Uint8Array([0x7E,0x00,0x04,0x01,0x00,0x00,0x00,0x00,0xEF]); await writeBytes(c); log('Power ON: '+bytesToHex(c));}
+async function powerOff(){const c=new Uint8Array([0x7E,0x00,0x04,0x00,0x00,0x00,0x00,0x00,0xEF]); await writeBytes(c); log('Power OFF: '+bytesToHex(c));}
+async function color(r,g,b){const c=new Uint8Array([0x7E,0x00,0x05,0x03,byte(r),byte(g),byte(b),0x00,0xEF]); await writeBytes(c); log('Colour: '+bytesToHex(c));}
+async function sendMode(){const c=cmdMode(); await writeBytes(c); const m=Number($('modeNum').value), s=Number($('speedNum').value); log(`Mode ${m} / 0x${hex2(m)} speed ${s} command ${bytesToHex(c)}`);}
+async function step(delta){let m=Number($('modeNum').value)+delta; if(m<1)m=213; if(m>213)m=1; $('modeNum').value=m; $('modeRange').value=m; updateCmdBox(); await sendMode();}
+function autoScan(){ if(autoTimer){return;} $('autoBtn').disabled=true; $('stopBtn').disabled=false; log('Auto scan started'); const tick=()=>step(1).catch(e=>{log('Auto error '+e.message); stopAuto();}); autoTimer=setInterval(tick, Math.max(500,Number($('delayNum').value)||1600)); }
+function stopAuto(){ if(autoTimer){clearInterval(autoTimer); autoTimer=null;} $('autoBtn').disabled=!char; $('stopBtn').disabled=true; log('Auto scan stopped'); }
+function mark(){const m=Number($('modeNum').value), s=Number($('speedNum').value), f=$('family').value, c=cmdMode(); localStorage.setItem('magi_melk_water_mode',JSON.stringify({family:f,mode:m,speed:s,hex:bytesToHex(c)})); $('saved').textContent=`${f} mode ${m} / ${bytesToHex(c)}`; log('Saved water candidate: '+$('saved').textContent);}
+$('connectBtn').onclick=connect; $('onBtn').onclick=()=>powerOn().catch(e=>log(e.message)); $('offBtn').onclick=()=>powerOff().catch(e=>log(e.message)); $('redBtn').onclick=()=>color(255,0,0).catch(e=>log(e.message)); $('blueBtn').onclick=()=>color(0,0,255).catch(e=>log(e.message)); $('sendBtn').onclick=()=>sendMode().catch(e=>log(e.message)); $('prevBtn').onclick=()=>step(-1); $('nextBtn').onclick=()=>step(1); $('autoBtn').onclick=autoScan; $('stopBtn').onclick=stopAuto; $('markBtn').onclick=mark;
+$('modeRange').oninput=()=>syncInputs('range'); $('speedRange').oninput=()=>syncInputs('range'); $('modeNum').oninput=()=>syncInputs('num'); $('speedNum').oninput=()=>syncInputs('num'); $('family').onchange=updateCmdBox;
+const saved=localStorage.getItem('magi_melk_water_mode'); if(saved){try{const o=JSON.parse(saved);$('saved').textContent=`${o.family} mode ${o.mode} / ${o.hex}`;}catch{}}
+updateCmdBox();
+</script>
+</body>
+</html>
