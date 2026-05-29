@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>MAGI — MELK / duoCo StripX Section Scanner</title>
+<style>
+:root{--bg:#050505;--panel:#100800;--or:#ff6600;--gr:#39ff14;--cy:#00c8ff;--re:#ff0033;--text:#f0dfc0;--dim:#725438;--border:#321800;--blue:#00a8ff;--gold:#ffd15c;font-family:system-ui,-apple-system,Segoe UI,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#1b0c00,#050505 55%);color:var(--text);min-height:100vh;padding:16px}.app{max-width:920px;margin:auto}.title{letter-spacing:.18em;color:var(--or);font-weight:900;font-size:1.45rem}.sub{color:var(--dim);font-family:monospace;margin:.35rem 0 1rem;line-height:1.45}.panel{background:linear-gradient(150deg,var(--panel),#060300);border:1px solid var(--border);border-radius:8px;padding:15px;margin:12px 0;box-shadow:0 0 20px #0008}.row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}@media(max-width:720px){.grid{grid-template-columns:1fr}}
+button{background:#080400;color:var(--or);border:1px solid var(--or);border-radius:6px;padding:11px 13px;font-weight:800;letter-spacing:.07em;cursor:pointer}button:disabled{opacity:.35;cursor:not-allowed}button.good{color:var(--gr);border-color:var(--gr)}button.danger{color:var(--re);border-color:var(--re)}button.blue{color:var(--cy);border-color:var(--cy)}button.gold{color:var(--gold);border-color:var(--gold)}select,input,textarea{width:100%;background:#050505;color:var(--text);border:1px solid var(--border);padding:10px;border-radius:6px;font-size:1rem}textarea{font-family:monospace;min-height:68px}.read{font-family:monospace;background:#050505;border:1px solid #2b1600;border-radius:6px;padding:12px;margin-top:10px;white-space:pre-wrap;color:#ffd6a0;max-height:260px;overflow:auto}.big{font-size:1.5rem;color:var(--gr);font-family:monospace;font-weight:900;word-break:break-word}.small{font-family:monospace;color:var(--dim);font-size:.85rem;line-height:1.5}label{display:block;color:var(--dim);font-family:monospace;margin:8px 0 4px}input[type=range]{width:100%}.warn{border-color:#5c2500;color:#ffb36a}.kbd{font-family:monospace;color:var(--cy)}.pill{font-family:monospace;border:1px solid var(--border);padding:5px 8px;border-radius:999px;color:var(--dim)}.ok{color:var(--gr)}.bad{color:var(--re)}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="title">MAGI STRIPX SECTION SCANNER</div>
+  <div class="sub">MELK / duoCo / HappyLighting advanced section finder — pure Web Bluetooth, no LAN, no Python.</div>
+
+  <div class="panel warn">
+    <b>Purpose:</b> your app shows things like <span class="kbd">Water → 17</span>, but that is probably not raw mode 17. This scanner tests section ranges and command families without you pasting hex by hand.<br><br>
+    <b>Do not use <span class="kbd">7E0404</span> here</b> — on your MELK it behaves like power toggle, not a safe init.
+  </div>
+
+  <div class="panel">
+    <div class="row">
+      <button id="connectBtn">⌁ CONNECT MELK / CLOUD</button>
+      <button id="onBtn" disabled class="good">POWER ON</button>
+      <button id="offBtn" disabled class="danger">POWER OFF</button>
+      <button id="redBtn" disabled>RED TEST</button>
+      <button id="blueBtn" disabled class="blue">BLUE TEST</button>
+      <button id="disconnectBtn" disabled>DISCONNECT</button>
+    </div>
+    <div class="read" id="status">Not connected.</div>
+  </div>
+
+  <div class="panel">
+    <div class="grid">
+      <div>
+        <label>Command family</label>
+        <select id="family">
+          <option value="fff0a">FFF0-A: 7E 00 03 04 mode speed 00 EF</option>
+          <option value="fff0b">FFF0-B: 7E 00 03 03 mode speed 00 EF</option>
+          <option value="fff0c">FFF0-C: 7E 00 03 05 mode speed 00 EF</option>
+          <option value="bb">BB: BB mode speed 44</option>
+          <option value="adv1">ADV-1: 7E 00 05 04 mode speed 00 00 EF</option>
+          <option value="adv2">ADV-2: 7E 00 05 03 mode speed 00 00 EF</option>
+          <option value="custom">CUSTOM TEMPLATE</option>
+        </select>
+      </div>
+      <div>
+        <label>Section preset</label>
+        <select id="section">
+          <option value="flow">Water / Flow likely range: 23–39</option>
+          <option value="flowWide">Water / Flow wide: 23–62</option>
+          <option value="rainbow">Rainbow / chase basic: 1–22</option>
+          <option value="runback">Runback / action likely: 144–160</option>
+          <option value="runbackWide">Runback wide: 128–180</option>
+          <option value="tail">Tail / pulse wide: 1–80</option>
+          <option value="all">All modes: 1–213</option>
+          <option value="manual">Manual range</option>
+        </select>
+      </div>
+      <div>
+        <label>Mode decimal</label>
+        <input id="modeNum" type="number" min="1" max="255" value="39">
+      </div>
+      <div>
+        <label>Speed decimal: 1 fastest, 255 slowest</label>
+        <input id="speedNum" type="number" min="1" max="255" value="48">
+      </div>
+      <div>
+        <label>Manual range start</label>
+        <input id="rangeStart" type="number" min="1" max="255" value="23">
+      </div>
+      <div>
+        <label>Manual range end</label>
+        <input id="rangeEnd" type="number" min="1" max="255" value="39">
+      </div>
+      <div>
+        <label>Auto scan delay ms</label>
+        <input id="delayNum" type="number" min="700" max="7000" value="2300">
+      </div>
+      <div>
+        <label>Section item number e.g. Water 17</label>
+        <input id="sectionItem" type="number" min="1" max="255" value="17">
+      </div>
+    </div>
+
+    <label>Custom template — use {M} for mode, {S} for speed, hex bytes only</label>
+    <textarea id="customTemplate">7E 00 03 04 {M} {S} 00 EF</textarea>
+
+    <label>Mode</label>
+    <input id="modeRange" type="range" min="1" max="213" value="39">
+    <label>Speed</label>
+    <input id="speedRange" type="range" min="1" max="255" value="48">
+
+    <div class="row" style="margin-top:12px">
+      <button id="startRangeBtn" disabled>SET TO RANGE START</button>
+      <button id="calcItemBtn" disabled class="gold">CALC SECTION ITEM</button>
+      <button id="prevBtn" disabled>◀ MODE -</button>
+      <button id="sendBtn" disabled class="blue">SEND MODE</button>
+      <button id="nextBtn" disabled>MODE + ▶</button>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button id="autoBtn" disabled>▶ AUTO SCAN SECTION</button>
+      <button id="stopBtn" disabled class="danger">■ STOP</button>
+      <button id="markWaterBtn" disabled class="good">★ SAVE AS WATER</button>
+      <button id="markOtherBtn" disabled>☆ SAVE AS OTHER</button>
+      <button id="copyBtn">COPY REPORT</button>
+    </div>
+
+    <div class="read" id="cmdBox">Command will show here.</div>
+  </div>
+
+  <div class="panel">
+    <div class="small">Saved candidates</div>
+    <div class="big" id="saved">—</div>
+    <div class="read" id="log">Log:</div>
+  </div>
+</div>
+<script>
+const SVC_FFF0='0000fff0-0000-1000-8000-00805f9b34fb';
+const CHR_FFF3='0000fff3-0000-1000-8000-00805f9b34fb';
+const SVC_FFE0='0000ffe0-0000-1000-8000-00805f9b34fb';
+const CHR_FFE1='0000ffe1-0000-1000-8000-00805f9b34fb';
+let device=null, char=null, type='unknown', autoTimer=null;
+const $=id=>document.getElementById(id);
+function byte(n){return Math.max(0,Math.min(255,Number(n)||0))&255}
+function hex2(n){return byte(n).toString(16).padStart(2,'0').toUpperCase()}
+function bytesToHex(a){return Array.from(a).map(hex2).join(' ')}
+function log(msg){$('log').textContent += '\n' + new Date().toTimeString().slice(0,8) + '  ' + msg; $('log').scrollTop=$('log').scrollHeight;}
+function setStatus(msg){$('status').textContent=msg;}
+function setEnabled(on){['onBtn','offBtn','redBtn','blueBtn','disconnectBtn','prevBtn','sendBtn','nextBtn','autoBtn','markWaterBtn','markOtherBtn','startRangeBtn','calcItemBtn'].forEach(id=>$(id).disabled=!on)}
+const ranges={
+  flow:[23,39], flowWide:[23,62], rainbow:[1,22], runback:[144,160], runbackWide:[128,180], tail:[1,80], all:[1,213], manual:null
+};
+function currentRange(){const sec=$('section').value; if(sec==='manual') return [byte($('rangeStart').value)||1, byte($('rangeEnd').value)||213]; return ranges[sec]||[1,213];}
+function applySection(){const [a,b]=currentRange(); $('rangeStart').value=a; $('rangeEnd').value=b; $('modeRange').min=a; $('modeRange').max=b; let m=Number($('modeNum').value); if(m<a||m>b)m=a; $('modeNum').value=m; $('modeRange').value=m; updateCmdBox();}
+function syncInputs(src){ if(src==='range'){ $('modeNum').value=$('modeRange').value; $('speedNum').value=$('speedRange').value; } else { $('modeRange').value=$('modeNum').value; $('speedRange').value=$('speedNum').value; } updateCmdBox(); }
+function parseCustomTemplate(){
+  const m=hex2($('modeNum').value), s=hex2($('speedNum').value);
+  const txt=$('customTemplate').value.replace(/\{M\}/g,m).replace(/\{S\}/g,s).replace(/0x/gi,' ').replace(/,/g,' ');
+  const parts=txt.trim().split(/\s+/).filter(Boolean);
+  if(parts.length===0) throw new Error('Empty custom template');
+  return new Uint8Array(parts.map(p=>parseInt(p,16)&255));
+}
+function cmdMode(){
+  const m=byte($('modeNum').value), s=byte($('speedNum').value), f=$('family').value;
+  if(f==='bb') return new Uint8Array([0xBB,m,s,0x44]);
+  if(f==='fff0b') return new Uint8Array([0x7E,0x00,0x03,0x03,m,s,0x00,0xEF]);
+  if(f==='fff0c') return new Uint8Array([0x7E,0x00,0x03,0x05,m,s,0x00,0xEF]);
+  if(f==='adv1') return new Uint8Array([0x7E,0x00,0x05,0x04,m,s,0x00,0x00,0xEF]);
+  if(f==='adv2') return new Uint8Array([0x7E,0x00,0x05,0x03,m,s,0x00,0x00,0xEF]);
+  if(f==='custom') return parseCustomTemplate();
+  return new Uint8Array([0x7E,0x00,0x03,0x04,m,s,0x00,0xEF]);
+}
+function updateCmdBox(){
+  let c; try{c=cmdMode()}catch(e){$('cmdBox').textContent='Template error: '+e.message;return;}
+  const m=Number($('modeNum').value), s=Number($('speedNum').value), [a,b]=currentRange();
+  const sectionItem=(m-a)+1;
+  $('cmdBox').textContent=`Family: ${$('family').selectedOptions[0].text}\nSection: ${$('section').selectedOptions[0].text}\nRange: ${a}–${b}\nDecimal mode: ${m}\nHex mode: 0x${hex2(m)}\nSection item at this range: ${sectionItem}\nSpeed: ${s} / 0x${hex2(s)}\nCommand: ${bytesToHex(c)}`;
+}
+async function writeBytes(bytes){if(!char) throw new Error('Not connected'); try{await char.writeValueWithoutResponse(bytes);}catch(e){await char.writeValue(bytes);}}
+async function connect(){
+  if(!navigator.bluetooth){alert('Web Bluetooth needs Chrome or Edge. Firefox will not work.');return;}
+  try{
+    setStatus('Opening Bluetooth chooser...');
+    device=await navigator.bluetooth.requestDevice({acceptAllDevices:true,optionalServices:[SVC_FFF0,SVC_FFE0]});
+    device.addEventListener('gattserverdisconnected',()=>{char=null;setEnabled(false);setStatus('Disconnected.');log('Disconnected');});
+    setStatus('Connecting to '+(device.name||'device')+'...');
+    const server=await device.gatt.connect();
+    try{const s=await server.getPrimaryService(SVC_FFF0); char=await s.getCharacteristic(CHR_FFF3); type='FFF0/FFF3';}
+    catch(e1){const s=await server.getPrimaryService(SVC_FFE0); char=await s.getCharacteristic(CHR_FFE1); type='FFE0/FFE1';}
+    setEnabled(true); setStatus(`Connected: ${device.name||'Unknown'}\nProtocol: ${type}\nScan section ranges and save the command that gives the real water/cloud pattern.`); log('Connected '+(device.name||'Unknown')+' using '+type);
+  }catch(e){setStatus('Connect failed: '+e.message); log('Connect failed: '+e.message);}
+}
+function disconnect(){stopAuto(); try{if(device&&device.gatt&&device.gatt.connected)device.gatt.disconnect();}catch(e){} char=null; setEnabled(false); setStatus('Disconnected.');}
+async function powerOn(){const c=new Uint8Array([0x7E,0x00,0x04,0x01,0x00,0x00,0x00,0x00,0xEF]); await writeBytes(c); log('Power ON: '+bytesToHex(c));}
+async function powerOff(){const c=new Uint8Array([0x7E,0x00,0x04,0x00,0x00,0x00,0x00,0x00,0xEF]); await writeBytes(c); log('Power OFF: '+bytesToHex(c));}
+async function color(r,g,b){const c=new Uint8Array([0x7E,0x00,0x05,0x03,byte(r),byte(g),byte(b),0x00,0xEF]); await writeBytes(c); log('Colour: '+bytesToHex(c));}
+async function sendMode(){const c=cmdMode(); await writeBytes(c); const m=Number($('modeNum').value), s=Number($('speedNum').value), [a]=currentRange(); log(`Mode ${m} / item ${(m-a)+1} speed ${s} command ${bytesToHex(c)}`);}
+async function step(delta){let m=Number($('modeNum').value)+delta; const [a,b]=currentRange(); if(m<a)m=b; if(m>b)m=a; $('modeNum').value=m; $('modeRange').value=m; updateCmdBox(); await sendMode();}
+function setToRangeStart(){const [a]=currentRange(); $('modeNum').value=a; $('modeRange').value=a; updateCmdBox();}
+function calcSectionItem(){const [a,b]=currentRange(); let m=a + (Number($('sectionItem').value)||1) - 1; if(m>b)m=b; $('modeNum').value=m; $('modeRange').value=m; updateCmdBox(); log(`Calculated section item ${$('sectionItem').value} as raw mode ${m} / 0x${hex2(m)}`);}
+function autoScan(){ if(autoTimer){return;} $('autoBtn').disabled=true; $('stopBtn').disabled=false; log('Auto section scan started'); const tick=()=>step(1).catch(e=>{log('Auto error '+e.message); stopAuto();}); autoTimer=setInterval(tick, Math.max(700,Number($('delayNum').value)||2300)); }
+function stopAuto(){ if(autoTimer){clearInterval(autoTimer); autoTimer=null;} $('autoBtn').disabled=!char; $('stopBtn').disabled=true; log('Auto scan stopped'); }
+function saveCandidate(kind){const m=Number($('modeNum').value), s=Number($('speedNum').value), f=$('family').value, c=cmdMode(), [a,b]=currentRange(); const o={kind,family:f,section:$('section').value,range:[a,b],mode:m,sectionItem:(m-a)+1,speed:s,hex:bytesToHex(c),time:new Date().toISOString()}; const key='magi_melk_stripx_candidates'; const arr=JSON.parse(localStorage.getItem(key)||'[]'); arr.push(o); localStorage.setItem(key,JSON.stringify(arr)); renderSaved(); log('Saved '+kind+': '+o.hex);}
+function renderSaved(){const arr=JSON.parse(localStorage.getItem('magi_melk_stripx_candidates')||'[]'); if(!arr.length){$('saved').textContent='—';return;} $('saved').textContent=arr.map(o=>`${o.kind}: ${o.family} ${o.section} raw ${o.mode} item ${o.sectionItem} speed ${o.speed} / ${o.hex}`).join('\n');}
+async function copyReport(){const report=`MAGI MELK STRIPX SCANNER REPORT\nDevice: ${device?device.name:'not connected'}\nProtocol: ${type}\nCurrent:\n${$('cmdBox').textContent}\n\nSaved:\n${$('saved').textContent}\n\nLog:\n${$('log').textContent}`; try{await navigator.clipboard.writeText(report); log('Report copied to clipboard');}catch(e){prompt('Copy report:',report);}}
+$('connectBtn').onclick=connect; $('disconnectBtn').onclick=disconnect; $('onBtn').onclick=()=>powerOn().catch(e=>log(e.message)); $('offBtn').onclick=()=>powerOff().catch(e=>log(e.message)); $('redBtn').onclick=()=>color(255,0,0).catch(e=>log(e.message)); $('blueBtn').onclick=()=>color(0,0,255).catch(e=>log(e.message)); $('sendBtn').onclick=()=>sendMode().catch(e=>log(e.message)); $('prevBtn').onclick=()=>step(-1); $('nextBtn').onclick=()=>step(1); $('autoBtn').onclick=autoScan; $('stopBtn').onclick=stopAuto; $('markWaterBtn').onclick=()=>saveCandidate('water'); $('markOtherBtn').onclick=()=>saveCandidate('other'); $('copyBtn').onclick=copyReport; $('startRangeBtn').onclick=setToRangeStart; $('calcItemBtn').onclick=calcSectionItem;
+$('modeRange').oninput=()=>syncInputs('range'); $('speedRange').oninput=()=>syncInputs('range'); $('modeNum').oninput=()=>syncInputs('num'); $('speedNum').oninput=()=>syncInputs('num'); $('family').onchange=updateCmdBox; $('section').onchange=applySection; $('rangeStart').oninput=applySection; $('rangeEnd').oninput=applySection; $('sectionItem').oninput=updateCmdBox; $('customTemplate').oninput=updateCmdBox;
+renderSaved(); applySection(); updateCmdBox();
+</script>
+</body>
+</html>
