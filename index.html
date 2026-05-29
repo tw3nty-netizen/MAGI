@@ -25,6 +25,45 @@
 <div class="readout"><span class="small">ACTIVE PROTOCOL</span><strong id="readout">— IDLE —</strong><span class="small" id="diagnostics">Diagnostics: standby</span></div>
 </div>
 </section>
+
+
+<div class="panel">
+  <div class="label"><span>// SCHEDULED ACTIVATION</span><span id="schedStatus">NO SCHEDULE</span></div>
+  <div class="small warning" style="padding:10px;margin-bottom:10px">
+    Bluetooth scheduler works only while this page stays open, the PC stays awake, and units remain connected.
+  </div>
+  <div class="controls">
+    <div class="control">
+      <label for="schedTime">TIME</label>
+      <input type="time" id="schedTime">
+      <output id="schedTimeOut">--:--</output>
+    </div>
+    <div class="control">
+      <label for="schedAction">ACTION</label>
+      <select id="schedAction" style="background:#050505;color:var(--text);border:1px solid #301600;padding:8px;font-family:var(--mono)">
+        <option value="power_on">POWER ON ONLY</option>
+        <option value="shutdown">SHUTDOWN</option>
+        <option value="pattern">RUN PATTERN</option>
+      </select>
+      <output id="schedActionOut">POWER</output>
+    </div>
+    <div class="control">
+      <label for="schedPattern">PATTERN</label>
+      <select id="schedPattern" style="background:#050505;color:var(--text);border:1px solid #301600;padding:8px;font-family:var(--mono)"></select>
+      <output id="schedPatternOut">—</output>
+    </div>
+  </div>
+  <div class="actions" style="margin-top:10px">
+    <button class="btn action ok" onclick="saveSchedule()">SET SCHEDULE</button>
+    <button class="btn action" onclick="runScheduleNow()">TEST NOW</button>
+    <button class="btn action danger" onclick="clearSchedule()">CLEAR</button>
+  </div>
+  <div class="readout" style="margin-top:10px">
+    <strong id="schedReadout">NO SCHEDULE SET</strong>
+    <span class="small" id="schedDetail">Set a time, keep this page open, and keep Bluetooth connected.</span>
+  </div>
+</div>
+
 <div class="footer">MAGI v6 runs fully in this HTML file. Bluetooth writes go directly from the browser to BLE LEDs. Audio analysis stays local in the browser.</div>
 </div><div class="toast" id="toast"></div>
 <audio id="filePlayer" controls class="hidden"></audio>
