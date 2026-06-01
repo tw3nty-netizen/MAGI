@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#050505" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>Lights</title>
+<script src="https://unpkg.com/webbluetooth@latest/dist/webbluetooth.min.js"></script>
+<style>
+:root{--bg:#050505;--panel:#111;--line:#2a2a2a;--text:#f2f2f2;--muted:#898989;--blue:#00b7ff;--green:#39ff14;--red:#ff3050;--orange:#ff8a00;--safe-t:env(safe-area-inset-top,0px);--safe-b:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}html,body{min-height:100dvh;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}body{padding:calc(var(--safe-t) + 18px) 14px calc(var(--safe-b) + 24px)}.app{max-width:540px;margin:0 auto;display:grid;gap:14px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px;border:1px solid var(--line);background:linear-gradient(160deg,#151515,#070707);border-radius:18px}.title{font-size:2rem;font-weight:800;letter-spacing:.02em}.status{font-size:.82rem;color:var(--muted);text-align:right;line-height:1.4}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#444;margin-right:6px}.dot.on{background:var(--green);box-shadow:0 0 10px var(--green)}.card{border:1px solid var(--line);background:#0d0d0d;border-radius:18px;padding:14px;display:grid;gap:12px}.connectGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.btn{border:1px solid #333;background:#181818;color:var(--text);border-radius:16px;padding:18px 14px;min-height:62px;font-size:1.02rem;font-weight:750;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.18)}.btn:active{transform:scale(.985)}.btn:disabled{opacity:.35}.btn.primary{border-color:#0b5b78;background:linear-gradient(160deg,#06384d,#101010);color:#dff7ff}.btn.off{border-color:#701426;background:linear-gradient(160deg,#3d0712,#101010);color:#ffdce3}.btn.small{font-size:.88rem;min-height:48px;padding:12px}.sectionTitle{font-size:.8rem;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin:2px 2px 0}.colourGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.colour{min-height:74px;border-radius:18px;border:1px solid rgba(255,255,255,.18);font-weight:850;font-size:.95rem;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.6);cursor:pointer}.colour:active{transform:scale(.985)}.quickGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.rangeRow{display:grid;grid-template-columns:88px 1fr 44px;gap:10px;align-items:center;color:var(--muted);font-size:.84rem}input[type=range]{width:100%;accent-color:var(--blue)}.log{min-height:42px;color:var(--muted);font-size:.82rem;line-height:1.45;padding:10px 12px;border:1px solid #242424;background:#070707;border-radius:12px}.hidden{display:none}.red{background:#ff0000}.orange{background:#ff7a00}.yellow{background:#ffd400;color:#111;text-shadow:none}.green{background:#18d800}.cyan{background:#00d5ff}.blue{background:#005cff}.purple{background:#7d22ff}.pink{background:#ff19bc}.white{background:#fff;color:#111;text-shadow:none}@media(max-width:420px){.title{font-size:1.7rem}.btn{font-size:.96rem}.colourGrid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="title">Lights</div>
+    <div class="status"><span class="dot" id="dot"></span><span id="statusText">Not connected</span><br><span id="countText">0 lights</span></div>
+  </div>
+
+  <div class="card">
+    <div class="connectGrid">
+      <button class="btn primary" onclick="connectLight()">Connect Light</button>
+      <button class="btn off" onclick="allOff()">All Off</button>
+    </div>
+    <div class="log" id="log">Tap Connect Light once for each controller.</div>
+  </div>
+
+  <div class="card">
+    <div class="sectionTitle">Simple</div>
+    <div class="quickGrid">
+      <button class="btn primary" onclick="allOn()">Lights On</button>
+      <button class="btn" onclick="rainbow()">Rainbow</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sectionTitle">Colours</div>
+    <div class="colourGrid">
+      <button class="colour red" onclick="setAll(255,0,0)">Red</button>
+      <button class="colour orange" onclick="setAll(255,120,0)">Orange</button>
+      <button class="colour yellow" onclick="setAll(255,210,0)">Yellow</button>
+      <button class="colour green" onclick="setAll(57,255,20)">Green</button>
+      <button class="colour cyan" onclick="setAll(0,210,255)">Cyan</button>
+      <button class="colour blue" onclick="setAll(0,70,255)">Blue</button>
+      <button class="colour purple" onclick="setAll(128,0,255)">Purple</button>
+      <button class="colour pink" onclick="setAll(255,0,180)">Pink</button>
+      <button class="colour white" onclick="setAll(255,255,255)">White</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sectionTitle">Brightness</div>
+    <div class="rangeRow"><span>Brightness</span><input id="brightness" type="range" min="10" max="100" value="85" oninput="syncBrightnessLabel()"><span id="bVal">85%</span></div>
+  </div>
+</div>
+<script>
+const CANDIDATES=[
+  {label:'Triones FFD5',service:'0000ffd5-0000-1000-8000-00805f9b34fb',char:'0000ffd9-0000-1000-8000-00805f9b34fb',type:'triones'},
+  {label:'HappyLighting FFF0',service:'0000fff0-0000-1000-8000-00805f9b34fb',char:'0000fff3-0000-1000-8000-00805f9b34fb',type:'fff0'},
+  {label:'FFE0',service:'0000ffe0-0000-1000-8000-00805f9b34fb',char:'0000ffe1-0000-1000-8000-00805f9b34fb',type:'fff0'},
+  {label:'FFE5',service:'0000ffe5-0000-1000-8000-00805f9b34fb',char:'0000ffe9-0000-1000-8000-00805f9b34fb',type:'triones'},
+  {label:'KS03 AFD0',service:'0000afd0-0000-1000-8000-00805f9b34fb',char:'0000afd1-0000-1000-8000-00805f9b34fb',type:'ks03'},
+  {label:'FFD0',service:'0000ffd0-0000-1000-8000-00805f9b34fb',char:'0000ffd4-0000-1000-8000-00805f9b34fb',type:'triones'},
+  {label:'FFD0 alt',service:'0000ffd0-0000-1000-8000-00805f9b34fb',char:'0000ffd9-0000-1000-8000-00805f9b34fb',type:'triones'}
+];
+const OPTIONAL=[...new Set(CANDIDATES.map(c=>c.service))];
+const lights=[];
+let lastColour=[57,255,20];
+function log(msg){document.getElementById('log').textContent=msg}
+function update(){document.getElementById('countText').textContent=`${lights.length} light${lights.length===1?'':'s'}`;document.getElementById('statusText').textContent=lights.length?'Connected':'Not connected';document.getElementById('dot').className='dot'+(lights.length?' on':'')}
+function clamp(v){return Math.max(0,Math.min(255,Math.round(v)))}
+function brightness(){return Number(document.getElementById('brightness').value)/100}
+function syncBrightnessLabel(){document.getElementById('bVal').textContent=document.getElementById('brightness').value+'%'; if(lights.length) setAll(...lastColour)}
+function colourCmd(type,r,g,b){const br=brightness();r=clamp(r*br);g=clamp(g*br);b=clamp(b*br);if(type==='ks03'){const kbr=clamp(br*100,1,100);return new Uint8Array([0x5A,0x00,0x01,r,g,b,0x00,kbr,0x00,0xA5])}if(type==='fff0')return new Uint8Array([0x7E,0x00,0x05,0x03,r,g,b,0x00,0xEF]);return new Uint8Array([0x56,r,g,b,0x00,0xF0,0xAA])}
+function onCmd(type){if(type==='ks03')return new Uint8Array([0x5B,0xF0,0x00,0xB5]);if(type==='fff0')return new Uint8Array([0x7E,0x00,0x04,0x01,0,0,0,0,0xEF]);return new Uint8Array([0xCC,0x23,0x33])}
+function offCmd(type){if(type==='ks03')return new Uint8Array([0x5B,0x0F,0x00,0xB5]);if(type==='fff0')return new Uint8Array([0x7E,0x00,0x04,0x00,0,0,0,0,0xEF]);return new Uint8Array([0xCC,0x24,0x33])}
+function trionesMode(mode,speed=0x30){return new Uint8Array([0xBB,mode&255,speed&255,0x44])}
+function fff0Mode(mode,speed=0x30){return new Uint8Array([0x7E,0x00,0x03,0x04,mode&255,speed&255,0x00,0xEF])}
+async function write(light,data){try{await light.char.writeValue(data)}catch(e){console.warn(e)}}
+async function connectLight(){
+  if(!navigator.bluetooth){log('Bluetooth is not available. Open this page through the iOS WebBLE/Safari setup.');return}
+  try{
+    const device=await navigator.bluetooth.requestDevice({acceptAllDevices:true,optionalServices:OPTIONAL});
+    log('Connecting…');
+    const server=await device.gatt.connect();
+    let chosen=null, char=null;
+    for(const c of CANDIDATES){try{const service=await server.getPrimaryService(c.service);char=await service.getCharacteristic(c.char);chosen=c;break}catch(e){}}
+    if(!chosen||!char){try{device.gatt.disconnect()}catch(e){};log('Unsupported light controller.');return}
+    const light={device,char,type:chosen.type,label:device.name||chosen.label};
+    device.addEventListener('gattserverdisconnected',()=>{const i=lights.indexOf(light);if(i>=0)lights.splice(i,1);update();log('A light disconnected.')});
+    lights.push(light);update();await write(light,onCmd(light.type));await write(light,colourCmd(light.type,...lastColour));log(`Connected: ${light.label}`);
+  }catch(e){if(e.name!=='NotFoundError')log('Connection failed. Try again.');console.warn(e)}
+}
+async function allOn(){for(const l of lights)await write(l,onCmd(l.type));await setAll(...lastColour);log('Lights on.')}
+async function allOff(){for(const l of lights)await write(l,offCmd(l.type));log('Lights off.')}
+async function setAll(r,g,b){lastColour=[r,g,b];for(const l of lights)await write(l,colourCmd(l.type,r,g,b));log('Colour set.')}
+async function rainbow(){
+  for(const l of lights){
+    await write(l,onCmd(l.type));
+    if(l.type==='triones') await write(l,trionesMode(0x25,0x30));
+    else if(l.type==='fff0') await write(l,fff0Mode(0x11,0x30));
+    else await write(l,colourCmd(l.type,128,0,255));
+  }
+  log('Rainbow started where supported.');
+}
+update();syncBrightnessLabel();
+</script>
+</body>
+</html>
